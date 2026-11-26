@@ -1,0 +1,80 @@
+name: Laravel CI
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci-root-only
+          MYSQL_DATABASE: workspace_test
+          MYSQL_USER: workspace
+          MYSQL_PASSWORD: ci-test-only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      APP_ENV: testing
+      APP_DEBUG: 'false'
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: workspace_test
+      DB_USERNAME: workspace
+      DB_PASSWORD: ci-test-only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_mysql, sqlite3, pdo_sqlite, dom, curl, xml, zip
+          coverage: none
+          tools: composer:v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          mkdir -p bootstrap/cache storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs storage/app/private
+      - name: Validate and install PHP dependencies
+        run: |
+          composer validate
+          composer install --no-interaction --prefer-dist --no-progress
+          composer check-platform-reqs
+      - name: Install JS dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
+          npm run build
+      - name: Generate key and test
+        run: |
+          php artisan key:generate --force
+          php artisan migrate --force
+          php artisan test
+          php artisan migrate:rollback --force
+          php artisan migrate --force
+      - name: Dependency audits
+        run: |
+          composer audit
+          npm audit --audit-level=high
+      - name: Publish generated lockfiles
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-lockfiles
+          path: |
+            composer.lock
+            package-lock.json
+          if-no-files-found: warn
