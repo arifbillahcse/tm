@@ -1,5 +1,5 @@
 # Development status
-- Phases 0–4 completed; Phase 4 CI passed 31 tests / 111 assertions, PR #4 merged.
-- Phase 5: task implementation and security review committed; final CI and PR #5 merge required. See docs/TASKS.md.
-- Phases 6–20 not started.
+- Phases 0–5 completed. Phase 5 CI 45929854862 passed 46 tests / 170 assertions; PR #5 merged at e94296a.
+- Phase 6: calendar implementation in progress; CI and review required before merge.
+- Phases 7–20 not started.
 No production deployment.
