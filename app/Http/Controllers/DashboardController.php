@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 class DashboardController {
  public function __construct(private WorkspaceContext $context){}
  private function modules(Workspace $w): array {
-  return $w->type==='personal'?['Second brain'=>9,'Career & learning'=>10,'Personal finance'=>14]:['Team'=>11,'Projects'=>12,'CRM'=>13,'Business finance'=>14,'Infrastructure'=>15,'Communication'=>16];
+  return $w->type==='personal'?['Career & learning'=>10,'Personal finance'=>14]:['Team'=>11,'Projects'=>12,'CRM'=>13,'Business finance'=>14,'Infrastructure'=>15,'Communication'=>16];
  }
  public function index(Request $r){
   $w=$this->context->current($r);$user=$r->user();
@@ -17,7 +17,8 @@ class DashboardController {
   $calendarToday=null;if($w->type==='personal'){$start=now()->setTimezone($user->timezone?:'UTC')->startOfDay();$calendarToday=app(\App\Services\CalendarService::class)->range($w,$start->copy()->utc(),$start->copy()->addDay()->utc());}
   $goalStats=null;if($w->type==='personal'){$g=\App\Models\Goal::where('workspace_id',$w->id);$h=\App\Models\Habit::where('workspace_id',$w->id)->where('active',true);$goalStats=['active'=>(clone $g)->where('status','active')->count(),'completed'=>(clone $g)->where('status','completed')->count(),'habits'=>(clone $h)->count(),'checked'=>0,'recent'=>(clone $g)->where('status','active')->latest('id')->limit(3)->get()];foreach($h->cursor() as $habit)if($habit->entries()->where('local_date',now()->setTimezone($habit->timezone)->toDateString())->exists())$goalStats['checked']++;}
   $timeStats=null;if($w->type==='personal'){$day=now()->setTimezone($user->timezone?:'UTC')->startOfDay();$timeStats=app(\App\Services\TimeTrackingService::class)->report($w,$day,$day->copy()->addDay())['totals'];}
-  return view('dashboard.index',['timeStats'=>$timeStats,'goalStats'=>$goalStats,'calendarToday'=>$calendarToday,'taskStats'=>$taskStats,'workspace'=>$w,'modules'=>$this->modules($w),'events'=>$events,'memberCount'=>$w->type==='business'?$w->members()->count():1,'pendingCount'=>Gate::allows('manage',$w)?$w->invitations()->whereNull('accepted_at')->whereNull('revoked_at')->where('expires_at','>',now())->count():null,'today'=>now()->setTimezone($user->timezone ?: 'UTC')->format('l, F j')]);
+  $knowledge=null;if($w->type==='personal'){$q=\App\Models\Note::where('workspace_id',$w->id)->where('archived',false);$knowledge=['count'=>(clone $q)->count(),'recent'=>(clone $q)->latest('updated_at')->limit(5)->get(['id','title','kind'])];}
+  return view('dashboard.index',['knowledge'=>$knowledge,'timeStats'=>$timeStats,'goalStats'=>$goalStats,'calendarToday'=>$calendarToday,'taskStats'=>$taskStats,'workspace'=>$w,'modules'=>$this->modules($w),'events'=>$events,'memberCount'=>$w->type==='business'?$w->members()->count():1,'pendingCount'=>Gate::allows('manage',$w)?$w->invitations()->whereNull('accepted_at')->whereNull('revoked_at')->where('expires_at','>',now())->count():null,'today'=>now()->setTimezone($user->timezone ?: 'UTC')->format('l, F j')]);
  }
  public function switch(Request $r,Workspace $workspace){
   Gate::authorize('view',$workspace);$r->session()->put('workspace_id',$workspace->id);return redirect()->route('dashboard');
@@ -31,6 +32,7 @@ class DashboardController {
   if($w->type==='personal'&&$q!==''&&str_contains('goals roadmap vision reports',mb_strtolower($q)))$pages->put('Goals',route('goals.index'));
   if($w->type==='personal'&&$q!==''&&str_contains('habits streaks',mb_strtolower($q)))$pages->put('Habits',route('habits.index'));
   if($w->type==='personal'&&$q!==''&&str_contains('focus timer timesheet time tracking',mb_strtolower($q)))$pages->put('Focus timer',route('time.index'));
+  if($w->type==='personal'&&$q!==''&&str_contains('knowledge second brain notes journal bookmarks snippets prompts research',mb_strtolower($q)))$pages->put('Second brain',route('knowledge.index'));
   return view('dashboard.search',['query'=>$q,'results'=>$results,'pages'=>$pages]);
  }
  public function notifications(Request $r){
