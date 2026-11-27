@@ -17,7 +17,7 @@ class Totp {
  }
  public static function matchingStep(string $secret,string $code): ?int {
   if(!preg_match('/^[0-9]{6}$/D',$code))return null;
-  $now=intdiv(time(),30);foreach([$now,$now-1,$now+1] as $step)if(hash_equals(self::code($secret,$step),$code))return $step;return null;
+  $now=intdiv(now()->timestamp,30);foreach([$now,$now-1,$now+1] as $step)if(hash_equals(self::code($secret,$step),$code))return $step;return null;
  }
  public static function consume(User $user,string $code): bool {
   return DB::transaction(function()use($user,$code){
