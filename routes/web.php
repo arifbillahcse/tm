@@ -19,6 +19,12 @@ Route::middleware(NoStore::class)->group(function(){
  Route::view('/invite','identity.invite')->middleware(SessionVersion::class)->name('invite');
  Route::post('/invite',[W::class,'accept'])->middleware([SessionVersion::class,'throttle:5,1']);
  Route::middleware(['auth',SessionVersion::class])->group(function(){
+  Route::post('/knowledge/folders',[\App\Http\Controllers\KnowledgeController::class,'folder'])->name('knowledge.folders.store');
+  Route::get('/knowledge/{note}/export',[\App\Http\Controllers\KnowledgeController::class,'export'])->name('knowledge.export');
+  Route::post('/knowledge/{note}/attachments',[\App\Http\Controllers\KnowledgeController::class,'upload'])->middleware('throttle:10,1')->name('knowledge.attachments.upload');
+  Route::get('/knowledge/{note}/attachments/{attachment}',[\App\Http\Controllers\KnowledgeController::class,'download'])->name('knowledge.attachments.download');
+  Route::delete('/knowledge/{note}/attachments/{attachment}',[\App\Http\Controllers\KnowledgeController::class,'removeAttachment'])->name('knowledge.attachments.remove');
+  Route::resource('knowledge',\App\Http\Controllers\KnowledgeController::class)->parameters(['knowledge'=>'note']);
   Route::get('/time',[\App\Http\Controllers\TimeTrackingController::class,'index'])->name('time.index');
   Route::post('/time/start',[\App\Http\Controllers\TimeTrackingController::class,'start'])->name('time.start');
   Route::post('/time/sessions/{session}/transition',[\App\Http\Controllers\TimeTrackingController::class,'transition'])->name('time.transition');
