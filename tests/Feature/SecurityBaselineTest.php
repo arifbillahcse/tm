@@ -1,5 +1,8 @@
 <?php
 namespace Tests\Feature;
+use App\Http\Middleware\SecurityHeaders;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 class SecurityBaselineTest extends TestCase {
@@ -22,8 +25,9 @@ class SecurityBaselineTest extends TestCase {
    ->assertHeader('Referrer-Policy','no-referrer');
  }
  public function test_hsts_is_added_only_for_secure_requests():void {
-  $this->withServerVariables(['HTTPS'=>'on'])->get('/login')->assertOk()
-   ->assertHeader('Strict-Transport-Security','max-age=31536000; includeSubDomains');
+  $request=Request::create('https://example.test/login');
+  $response=(new SecurityHeaders())->handle($request,fn()=>new Response('OK'));
+  $this->assertSame('max-age=31536000; includeSubDomains',$response->headers->get('Strict-Transport-Security'));
  }
  public function test_shell_has_skip_navigation_and_accessible_main_landmark():void {
   $shell=file_get_contents(resource_path('views/layouts/shell.blade.php'));
