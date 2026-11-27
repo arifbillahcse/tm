@@ -1,7 +1,6 @@
 # Development status
-- Phase 0: completed.
-- Phase 1: completed; merged in PR #1.
-- Phase 2: scaffold implemented; initial CI run 45876392123 passed (4 tests, 13 assertions; dependency audits passed). Both exact generated lockfiles were imported with SHA-256 verification from that run. Final CI requires locked installs and read-only permissions. Phase 2 is complete only when the final PR #2 head passes CI and is merged into develop; see https://github.com/arifbillahcse/tm/pull/2 for authoritative status.
-- Phases 3–20: not started.
-
-PHP 8.3, Laravel 12, MySQL 8, Livewire 3, Tailwind 4/Vite, base migrations, tests and CI. No deployment or default credentials. Repository privacy recommended. Phase 3 adds invitation-only authentication, workspace membership and cross-tenant tests.
+- Phase 0 and 1: completed.
+- Phase 2: completed; final CI 45924332187 passed, PR #2 merged into develop.
+- Phase 3: implementation in progress; CI and merge required. See docs/IDENTITY.md for operational setup and limitations.
+- Phases 4–20: not started.
+No production deployment. Repository privacy recommended.
