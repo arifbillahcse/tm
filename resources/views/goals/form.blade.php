@@ -1,0 +1,9 @@
+@extends('layouts.shell')
+@section('title','Goal editor')
+@section('content')
+<div class="page-heading"><h1>{{ $goal->exists?'Edit goal':'New goal' }}</h1><a class="btn secondary" href="{{ route('goals.index') }}">Roadmap</a></div>
+<x-ui.card><form class="identity-content" method="POST" action="{{ $goal->exists?route('goals.update',$goal):route('goals.store') }}">@csrf @if($goal->exists) @method('PUT') @endif
+<label>Goal title<input class="field" name="title" required maxlength="200" value="{{ old('title',$goal->title) }}"></label><label>Description<textarea class="field" name="description">{{ old('description',$goal->description) }}</textarea></label>
+<div class="task-filters">@foreach(['horizon'=>\App\Models\Goal::HORIZONS,'category'=>\App\Models\Goal::CATEGORIES,'status'=>['active','paused','completed']] as $key=>$values)<label>{{ ucfirst($key) }}<select name="{{ $key }}" class="field">@foreach($values as $value)<option @selected(old($key,$goal->$key)===$value)>{{ $value }}</option>@endforeach</select></label>@endforeach<label>Deadline<input class="field" type="date" name="due_date" value="{{ old('due_date',$goal->due_date?->toDateString()) }}"></label><label>Target<input class="field" type="number" name="target" min="0.01" step="0.01" required value="{{ old('target',$goal->target) }}"></label><label>Actual result<input class="field" type="number" name="actual" min="0" step="0.01" required value="{{ old('actual',$goal->actual) }}"></label><label>Unit<input class="field" name="unit" required maxlength="40" value="{{ old('unit',$goal->unit) }}"></label></div>
+<label>Vision — why this goal matters<textarea class="field" name="vision" maxlength="4000">{{ old('vision',$goal->vision) }}</textarea></label><button class="btn">Save goal</button></form></x-ui.card>
+@endsection
