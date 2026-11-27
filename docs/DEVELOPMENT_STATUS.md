@@ -1,5 +1,5 @@
 # Development status
-- Phases 0–2: completed.
-- Phase 3: initial CI 45925862480 passed 15 tests; hardening CI 45926092190 failed one TOTP assertion. Fixed the model's missing in-memory auth_version default without relaxing the version comparison, added controlled-clock replay and stale-version regression coverage, and enforced bcrypt byte limits. Latest CI and PR #3 merge are required before completion.
-- Phases 4–20: not started.
-No production deployment. See docs/IDENTITY.md for operational requirements.
+- Phases 0–3 completed.
+- Phase 4: initial CI 45926822371 passed 28 tests / 99 assertions, both dependency audits passed. UI and isolation hardening added; final CI and merge of PR #4 required. See https://github.com/arifbillahcse/tm/pull/4 for authoritative merge status.
+- Phases 5–20 not started.
+No production deployment. See docs/UI.md for scope and limitations.

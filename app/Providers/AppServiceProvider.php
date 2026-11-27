@@ -2,9 +2,18 @@
 namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use App\Models\Workspace;
 use App\Policies\WorkspacePolicy;
+use App\Services\WorkspaceContext;
 class AppServiceProvider extends ServiceProvider {
  public function register(): void {}
- public function boot(): void {Gate::policy(Workspace::class,WorkspacePolicy::class);}
+ public function boot(): void {
+  Gate::policy(Workspace::class,WorkspacePolicy::class);
+  View::composer('layouts.shell',function($view){
+   if(!auth()->check())return;
+   $context=app(WorkspaceContext::class);
+   $view->with('shellWorkspaces',$context->available(auth()->user()))->with('shellCurrent',$context->current(request()));
+  });
+ }
 }

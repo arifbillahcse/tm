@@ -14,7 +14,7 @@ use Illuminate\Validation\Rules\Password;
 class WorkspaceController {
  public function index(Request $r){
   $user=$r->user();Identity::personal($user);
-  $workspaces=$user->workspaces()->where(fn($q)=>$q->where('type','business')->orWhere(fn($q)=>$q->where('type','personal')->where('owner_id',$user->id)))->get();
+  $workspaces=app(\App\Services\WorkspaceContext::class)->available($user);
   return view('identity.workspaces',compact('workspaces'));
  }
  public function store(Request $r){

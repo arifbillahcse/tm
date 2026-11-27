@@ -1,1 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="referrer" content="no-referrer"><title>Softorio Workspace</title>@vite(['resources/css/app.css','resources/js/app.js'])</head><body class="bg-slate-950 text-slate-100"><main class="mx-auto max-w-3xl px-6 py-10 space-y-6"><h1 class="text-3xl font-bold">Softorio Workspace</h1>@auth<nav class="flex gap-4"><a href="{{ route('workspaces.index') }}">Workspaces</a><a href="{{ route('profile') }}">Profile</a><form method="POST" action="{{ route('logout') }}">@csrf<button>Sign out</button></form></nav>@endauth @if(session('status'))<p role="status">{{ session('status') }}</p>@endif @if($errors->any())<ul role="alert" class="text-red-300">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>@endif @yield('content')</main></body></html>
+@extends(auth()->check() ? 'layouts.shell' : 'layouts.guest')
+@section('title','Settings')
+@section('content')
+<x-ui.card class="identity-content">@yield('identity')</x-ui.card>
+@endsection

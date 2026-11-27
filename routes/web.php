@@ -19,6 +19,10 @@ Route::middleware(NoStore::class)->group(function(){
  Route::view('/invite','identity.invite')->middleware(SessionVersion::class)->name('invite');
  Route::post('/invite',[W::class,'accept'])->middleware([SessionVersion::class,'throttle:5,1']);
  Route::middleware(['auth',SessionVersion::class])->group(function(){
+  Route::get('/dashboard',[\App\Http\Controllers\DashboardController::class,'index'])->name('dashboard');
+  Route::get('/search',[\App\Http\Controllers\DashboardController::class,'search'])->middleware('throttle:60,1')->name('search');
+  Route::get('/notifications',[\App\Http\Controllers\DashboardController::class,'notifications'])->name('notifications.index');
+  Route::post('/workspaces/{workspace}/switch',[\App\Http\Controllers\DashboardController::class,'switch'])->name('workspace.switch');
   Route::post('/logout',[A::class,'logout'])->name('logout');
   Route::get('/profile',[A::class,'profile'])->name('profile');
   Route::post('/profile',[A::class,'updateProfile']);
