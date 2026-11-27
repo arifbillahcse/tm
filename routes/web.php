@@ -19,6 +19,16 @@ Route::middleware(NoStore::class)->group(function(){
  Route::view('/invite','identity.invite')->middleware(SessionVersion::class)->name('invite');
  Route::post('/invite',[W::class,'accept'])->middleware([SessionVersion::class,'throttle:5,1']);
  Route::middleware(['auth',SessionVersion::class])->group(function(){
+  Route::get('/technology',[\App\Http\Controllers\TechnologyController::class,'index'])->name('technology.index');
+  Route::get('/technology/create',[\App\Http\Controllers\TechnologyController::class,'create'])->name('technology.create');
+  Route::post('/technology',[\App\Http\Controllers\TechnologyController::class,'store'])->name('technology.store');
+  Route::get('/technology/{id}/edit',[\App\Http\Controllers\TechnologyController::class,'edit'])->whereNumber('id')->name('technology.edit');
+  Route::put('/technology/{id}',[\App\Http\Controllers\TechnologyController::class,'update'])->whereNumber('id')->name('technology.update');
+  Route::post('/technology/metrics',[\App\Http\Controllers\TechnologyController::class,'metric'])->name('technology.metric');
+  Route::post('/technology/checklists',[\App\Http\Controllers\TechnologyController::class,'checklist'])->name('technology.checklist');
+  Route::patch('/technology/checklists/{id}',[\App\Http\Controllers\TechnologyController::class,'complete'])->whereNumber('id')->name('technology.checklist.complete');
+  Route::post('/technology/monitors',[\App\Http\Controllers\TechnologyController::class,'monitor'])->name('technology.monitor');
+  Route::patch('/technology/monitors/{id}',[\App\Http\Controllers\TechnologyController::class,'monitorState'])->whereNumber('id')->name('technology.monitor.state');
   Route::get('/finance',[\App\Http\Controllers\FinanceController::class,'index'])->name('finance.index');
   Route::post('/finance/accounts',[\App\Http\Controllers\FinanceController::class,'account'])->name('finance.account');
   Route::post('/finance/categories',[\App\Http\Controllers\FinanceController::class,'category'])->name('finance.category');
