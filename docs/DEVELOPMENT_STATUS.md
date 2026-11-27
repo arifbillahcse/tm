@@ -1,9 +1,7 @@
 # Development status
 - Phase 0: completed.
-- Phase 1: completed; documentation verified and merged into develop in PR #1.
-- Phase 2: scaffold authored; verification pending CI, committed dependency lockfiles, and review. No runtime success claimed.
+- Phase 1: completed; merged in PR #1.
+- Phase 2: scaffold implemented; initial CI run 45876392123 passed (4 tests, 13 assertions; dependency audits passed). Both exact generated lockfiles were imported with SHA-256 verification from that run. Final CI requires locked installs and read-only permissions. Phase 2 is complete only when the final PR #2 head passes CI and is merged into develop; see https://github.com/arifbillahcse/tm/pull/2 for authoritative status.
 - Phases 3–20: not started.
 
-Phase 2 includes PHP 8.3 / Laravel 12, MySQL, Livewire 3 (bundled Alpine), Tailwind 4/Vite, base migrations and factory, health and home routes, environment settings, tests and MySQL CI. Dependency constraints are provisional until resolved and audited. CI uploads generated lockfiles; commit them and rerun CI before merging. No production deployment or default credentials.
-
-Repository privacy recommended. Phase 3 requires invitation-only authentication, workspace roles and cross-tenant tests.
+PHP 8.3, Laravel 12, MySQL 8, Livewire 3, Tailwind 4/Vite, base migrations, tests and CI. No deployment or default credentials. Repository privacy recommended. Phase 3 adds invitation-only authentication, workspace membership and cross-tenant tests.
