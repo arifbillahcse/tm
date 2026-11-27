@@ -10,6 +10,7 @@ class AppServiceProvider extends ServiceProvider {
  public function register(): void {}
  public function boot(): void {
   Gate::policy(Workspace::class,WorkspacePolicy::class);
+  Gate::policy(\App\Models\Note::class,\App\Policies\NotePolicy::class);
   Gate::policy(\App\Models\FocusSession::class,\App\Policies\FocusSessionPolicy::class);
   Gate::policy(\App\Models\TimeEntry::class,\App\Policies\TimeEntryPolicy::class);
   Gate::policy(\App\Models\Goal::class,\App\Policies\GoalPolicy::class);
