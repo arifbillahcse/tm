@@ -19,6 +19,26 @@ Route::middleware(NoStore::class)->group(function(){
  Route::view('/invite','identity.invite')->middleware(SessionVersion::class)->name('invite');
  Route::post('/invite',[W::class,'accept'])->middleware([SessionVersion::class,'throttle:5,1']);
  Route::middleware(['auth',SessionVersion::class])->group(function(){
+  Route::get('/finance',[\App\Http\Controllers\FinanceController::class,'index'])->name('finance.index');
+  Route::post('/finance/accounts',[\App\Http\Controllers\FinanceController::class,'account'])->name('finance.account');
+  Route::post('/finance/categories',[\App\Http\Controllers\FinanceController::class,'category'])->name('finance.category');
+  Route::post('/finance/transactions',[\App\Http\Controllers\FinanceController::class,'transaction'])->name('finance.transaction');
+  Route::post('/finance/transactions/{id}/reverse',[\App\Http\Controllers\FinanceController::class,'reverse'])->whereNumber('id')->name('finance.reverse');
+  Route::post('/finance/recurring',[\App\Http\Controllers\FinanceController::class,'recurring'])->name('finance.recurring');
+  Route::patch('/finance/recurring/{id}',[\App\Http\Controllers\FinanceController::class,'pause'])->whereNumber('id')->name('finance.pause');
+  Route::post('/finance/rates',[\App\Http\Controllers\FinanceController::class,'rate'])->name('finance.rate');
+  Route::post('/finance/budgets',[\App\Http\Controllers\FinanceController::class,'budget'])->name('finance.budget');
+  Route::post('/finance/savings',[\App\Http\Controllers\FinanceController::class,'savings'])->name('finance.savings');
+  Route::patch('/finance/savings/{id}',[\App\Http\Controllers\FinanceController::class,'savingsProgress'])->whereNumber('id')->name('finance.savings.progress');
+  Route::post('/finance/salaries',[\App\Http\Controllers\FinanceController::class,'salary'])->name('finance.salary');
+  Route::post('/finance/payroll',[\App\Http\Controllers\FinanceController::class,'payroll'])->name('finance.payroll');
+  Route::post('/finance/payroll/{id}/pay',[\App\Http\Controllers\FinanceController::class,'payPayroll'])->whereNumber('id')->name('finance.payroll.pay');
+  Route::post('/finance/invoices',[\App\Http\Controllers\FinanceController::class,'invoice'])->name('finance.invoice');
+  Route::post('/finance/invoices/{id}/pay',[\App\Http\Controllers\FinanceController::class,'payInvoice'])->whereNumber('id')->name('finance.invoice.pay');
+  Route::get('/finance/invoices/{id}',[\App\Http\Controllers\FinanceController::class,'printInvoice'])->whereNumber('id')->name('finance.invoice.print');
+  Route::post('/finance/transactions/{id}/receipts',[\App\Http\Controllers\FinanceController::class,'upload'])->whereNumber('id')->middleware('throttle:10,1')->name('finance.upload');
+  Route::get('/finance/receipts/{id}',[\App\Http\Controllers\FinanceController::class,'download'])->whereNumber('id')->name('finance.download');
+  Route::get('/finance/export',[\App\Http\Controllers\FinanceController::class,'export'])->name('finance.export');
   Route::get('/crm',[\App\Http\Controllers\CrmController::class,'index'])->name('crm.index');
   Route::post('/crm/companies',[\App\Http\Controllers\CrmController::class,'company'])->name('crm.company');
   Route::put('/crm/companies/{id}',[\App\Http\Controllers\CrmController::class,'company'])->whereNumber('id')->name('crm.company.update');
