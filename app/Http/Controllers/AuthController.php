@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 class AuthController {
  public function login(Request $r){
-  $data=$r->validate(['email'=>'required|email|max:255','password'=>'required|string|max:1024']);
+  $data=$r->validate(['email'=>'required|email|max:255','password'=>['required','string','max:72',function ($attribute,$value,$fail) { if (is_string($value) && (strlen($value)>72 || str_contains($value, chr(0)))) $fail('The password must be at most 72 bytes and contain no null bytes.'); }]]);
   $user=User::where('email',strtolower($data['email']))->first();
   $key='identity-login:'.hash('sha256',strtolower($data['email']));
   if(RateLimiter::tooManyAttempts($key,10))return back()->withErrors(['email'=>'Try again later.']);
@@ -47,14 +47,14 @@ class AuthController {
   $data=$r->validate(['email'=>'required|email|max:255']);abort_if(app()->isProduction()&&config('mail.default')==='log',503);Password::sendResetLink(['email'=>strtolower($data['email'])]);return back()->with('status','If the account exists, a reset link has been requested.');
  }
  public function reset(Request $r){
-  $data=$r->validate(['email'=>'required|email|max:255','token'=>'required|string','password'=>['required','confirmed','max:72',PasswordRule::min(12)]]);
+  $data=$r->validate(['email'=>'required|email|max:255','token'=>'required|string','password'=>['required','confirmed','max:72',function ($attribute,$value,$fail) { if (is_string($value) && (strlen($value)>72 || str_contains($value, chr(0)))) $fail('The password must be at most 72 bytes and contain no null bytes.'); },PasswordRule::min(12)]]);
   $data['email']=strtolower($data['email']);
   $status=Password::reset($data,function(User $user,string $password){
    DB::transaction(function()use($user,$password){$fresh=User::lockForUpdate()->findOrFail($user->id);$fresh->forceFill(['password'=>$password,'remember_token'=>Str::random(60),'auth_version'=>$fresh->auth_version+1])->save();DB::table('sessions')->where('user_id',$fresh->id)->delete();Identity::audit('password_reset',$fresh);});
   });
   return $status===Password::PASSWORD_RESET?redirect()->route('login')->with('status','Password reset.'):back()->withErrors(['email'=>'Invalid or expired reset link.']);
  }
- public function profile(Request $r){return view('identity.profile',['user'=>$r->user(),'secret'=>$r->session()->get('enroll_secret')]);}
+ public function profile(Request $r){if($r->session()->get('enroll_expires',0)<time())$r->session()->forget(['enroll_secret','enroll_expires']);return view('identity.profile',['user'=>$r->user(),'secret'=>$r->session()->get('enroll_secret')]);}
  public function updateProfile(Request $r){
   $data=$r->validate(['name'=>'required|string|max:255','timezone'=>'required|timezone']);$r->user()->update($data);return back()->with('status','Profile saved.');
  }
