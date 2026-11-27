@@ -26,9 +26,7 @@
    @if($shellCurrent->type==='business')<x-ui.nav :href="route('projects.index')" :active="request()->routeIs('projects.*')" aria-label="Projects"><span aria-hidden="true">▤</span><span class="nav-label">Projects</span></x-ui.nav>@endif
    @if(\App\Services\CrmAccess::canView($shellCurrent,auth()->user()))<x-ui.nav :href="route('crm.index')" :active="request()->routeIs('crm.*')" aria-label="CRM"><span aria-hidden="true">◇</span><span class="nav-label">CRM &amp; sales</span></x-ui.nav>@endif
    @if(\App\Services\FinanceAccess::canView($shellCurrent,auth()->user()))<x-ui.nav :href="route('finance.index')" :active="request()->routeIs('finance.*')" aria-label="Finance"><span aria-hidden="true">৳</span><span class="nav-label">Finance</span></x-ui.nav>@endif
-   @foreach($shellCurrent->type==='personal'?[]:['Infrastructure'] as $label)
-    <span class="nav-link unavailable nav-label">{{ $label }}<small>Soon</small></span>
-   @endforeach
+   @if(\App\Services\TechnologyAccess::canView($shellCurrent,auth()->user()))<x-ui.nav :href="route('technology.index')" :active="request()->routeIs('technology.*')" aria-label="Infrastructure"><span aria-hidden="true">▣</span><span class="nav-label">Infrastructure</span></x-ui.nav>@endif
   </nav>
   <div class="sidebar-bottom"><form method="POST" action="{{ route('logout') }}">@csrf<button class="nav-link" aria-label="Sign out"><span aria-hidden="true">↪</span><span class="nav-label">Sign out</span></button></form></div>
  </aside>
