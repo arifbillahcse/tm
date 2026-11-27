@@ -19,6 +19,10 @@ Route::middleware(NoStore::class)->group(function(){
  Route::view('/invite','identity.invite')->middleware(SessionVersion::class)->name('invite');
  Route::post('/invite',[W::class,'accept'])->middleware([SessionVersion::class,'throttle:5,1']);
  Route::middleware(['auth',SessionVersion::class])->group(function(){
+  Route::resource('tasks',\App\Http\Controllers\TaskController::class);
+  Route::post('/tasks/{task}/attachments',[\App\Http\Controllers\TaskController::class,'upload'])->middleware('throttle:10,1')->name('tasks.attachments.upload');
+  Route::get('/tasks/{task}/attachments/{attachment}',[\App\Http\Controllers\TaskController::class,'download'])->name('tasks.attachments.download');
+  Route::delete('/tasks/{task}/attachments/{attachment}',[\App\Http\Controllers\TaskController::class,'removeAttachment'])->name('tasks.attachments.remove');
   Route::get('/dashboard',[\App\Http\Controllers\DashboardController::class,'index'])->name('dashboard');
   Route::get('/search',[\App\Http\Controllers\DashboardController::class,'search'])->middleware('throttle:60,1')->name('search');
   Route::get('/notifications',[\App\Http\Controllers\DashboardController::class,'notifications'])->name('notifications.index');
