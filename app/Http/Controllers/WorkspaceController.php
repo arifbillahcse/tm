@@ -50,11 +50,11 @@ class WorkspaceController {
  public function role(Request $r,Workspace $workspace,User $member){
   Gate::authorize('administer',$workspace);abort_if($member->id===$workspace->owner_id,403);
   $data=$r->validate(['role'=>['required',Rule::in(['admin','manager','member'])]]);abort_unless($workspace->members()->where('users.id',$member->id)->exists(),404);
-  $workspace->members()->updateExistingPivot($member->id,['role'=>$data['role']]);Identity::audit('role_changed',$r->user(),$workspace);return back();
+  DB::transaction(function()use($workspace,$member,$r,$data){$w=Workspace::whereKey($workspace->id)->lockForUpdate()->firstOrFail();Gate::authorize('administer',$w);abort_unless($w->members()->where('users.id',$member->id)->exists(),404);$w->members()->updateExistingPivot($member->id,['role'=>$data['role']]);Identity::audit('role_changed',$r->user(),$w);});return back();
  }
  public function remove(Request $r,Workspace $workspace,User $member){
   Gate::authorize('administer',$workspace);abort_if($member->id===$workspace->owner_id,403);abort_unless($workspace->members()->where('users.id',$member->id)->exists(),404);
-  DB::transaction(function()use($workspace,$member){$workspace->members()->detach($member->id);$workspace->invitations()->where(fn($q)=>$q->where('email',$member->email)->orWhere('invited_by',$member->id))->whereNull('accepted_at')->update(['revoked_at'=>now()]);});Identity::audit('member_removed',$r->user(),$workspace);return back();
+  DB::transaction(function()use($workspace,$member){$workspace=Workspace::whereKey($workspace->id)->lockForUpdate()->firstOrFail();abort_unless($workspace->members()->where('users.id',$member->id)->exists(),404);$workspace->members()->detach($member->id);$workspace->invitations()->where(fn($q)=>$q->where('email',$member->email)->orWhere('invited_by',$member->id))->whereNull('accepted_at')->update(['revoked_at'=>now()]);});Identity::audit('member_removed',$r->user(),$workspace);return back();
  }
  public function revoke(Request $r,Workspace $workspace,Invitation $invitation){
   Gate::authorize('manage',$workspace);abort_unless($invitation->workspace_id===$workspace->id,404);abort_if($invitation->role==='admin'&&!Gate::allows('administer',$workspace),403);$invitation->update(['revoked_at'=>now()]);Identity::audit('invitation_revoked',$r->user(),$workspace);return back();

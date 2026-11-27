@@ -19,6 +19,20 @@ Route::middleware(NoStore::class)->group(function(){
  Route::view('/invite','identity.invite')->middleware(SessionVersion::class)->name('invite');
  Route::post('/invite',[W::class,'accept'])->middleware([SessionVersion::class,'throttle:5,1']);
  Route::middleware(['auth',SessionVersion::class])->group(function(){
+  Route::get('/team',[\App\Http\Controllers\TeamController::class,'index'])->name('team.index');
+  Route::post('/team/departments',[\App\Http\Controllers\TeamController::class,'department'])->name('team.department');
+  Route::put('/team/profiles/{user}',[\App\Http\Controllers\TeamController::class,'profile'])->whereNumber('user')->name('team.profile');
+  Route::post('/team/attendance',[\App\Http\Controllers\TeamController::class,'attendance'])->name('team.attendance');
+  Route::post('/team/leave',[\App\Http\Controllers\TeamController::class,'leave'])->name('team.leave');
+  Route::patch('/team/leave/{leave}',[\App\Http\Controllers\TeamController::class,'decide'])->whereNumber('leave')->name('team.decide');
+  Route::post('/team/reports',[\App\Http\Controllers\TeamController::class,'report'])->name('team.report');
+  Route::post('/team/reviews',[\App\Http\Controllers\TeamController::class,'review'])->name('team.review');
+  Route::post('/team/onboarding',[\App\Http\Controllers\TeamController::class,'onboard'])->name('team.onboard');
+  Route::patch('/team/onboarding/{item}',[\App\Http\Controllers\TeamController::class,'complete'])->whereNumber('item')->name('team.complete');
+  Route::post('/team/announcements',[\App\Http\Controllers\TeamController::class,'announce'])->name('team.announce');
+  Route::post('/team/documents',[\App\Http\Controllers\TeamController::class,'upload'])->middleware('throttle:10,1')->name('team.documents.upload');
+  Route::get('/team/documents/{document}',[\App\Http\Controllers\TeamController::class,'download'])->whereNumber('document')->name('team.documents.download');
+  Route::delete('/team/documents/{document}',[\App\Http\Controllers\TeamController::class,'removeDocument'])->whereNumber('document')->name('team.documents.delete');
   Route::get('/career/skills',[\App\Http\Controllers\CareerController::class,'skills'])->name('career.skills');
   Route::post('/career/skills',[\App\Http\Controllers\CareerController::class,'saveSkill'])->name('career.skills.store');
   Route::put('/career/skills/{skill}',[\App\Http\Controllers\CareerController::class,'saveSkill'])->name('career.skills.update');
