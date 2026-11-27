@@ -19,6 +19,25 @@ Route::middleware(NoStore::class)->group(function(){
  Route::view('/invite','identity.invite')->middleware(SessionVersion::class)->name('invite');
  Route::post('/invite',[W::class,'accept'])->middleware([SessionVersion::class,'throttle:5,1']);
  Route::middleware(['auth',SessionVersion::class])->group(function(){
+  Route::get('/projects',[\App\Http\Controllers\ProjectController::class,'index'])->name('projects.index');
+  Route::post('/projects',[\App\Http\Controllers\ProjectController::class,'store'])->name('projects.store');
+  Route::post('/projects/templates',[\App\Http\Controllers\ProjectController::class,'template'])->name('projects.template');
+  Route::get('/projects/{project}',[\App\Http\Controllers\ProjectController::class,'show'])->name('projects.show');
+  Route::patch('/projects/{project}/status',[\App\Http\Controllers\ProjectController::class,'status'])->name('projects.status');
+  Route::post('/projects/{project}/members',[\App\Http\Controllers\ProjectController::class,'member'])->name('projects.member');
+  Route::post('/projects/{project}/milestones',[\App\Http\Controllers\ProjectController::class,'milestone'])->name('projects.milestone');
+  Route::patch('/projects/{project}/milestones/{milestone}',[\App\Http\Controllers\ProjectController::class,'completeMilestone'])->whereNumber('milestone')->name('projects.milestone.complete');
+  Route::post('/projects/{project}/tasks',[\App\Http\Controllers\ProjectController::class,'task'])->name('projects.task');
+  Route::patch('/projects/{project}/tasks/{task}/assign',[\App\Http\Controllers\ProjectController::class,'assign'])->whereNumber('task')->name('projects.assign');
+  Route::post('/projects/{project}/tasks/{task}/dependencies',[\App\Http\Controllers\ProjectController::class,'dependency'])->whereNumber('task')->name('projects.dependency');
+  Route::patch('/projects/{project}/tasks/{task}/status',[\App\Http\Controllers\ProjectController::class,'transition'])->whereNumber('task')->name('projects.transition');
+  Route::patch('/projects/{project}/approvals/{approval}',[\App\Http\Controllers\ProjectController::class,'decide'])->whereNumber('approval')->name('projects.decide');
+  Route::post('/projects/{project}/comments',[\App\Http\Controllers\ProjectController::class,'comment'])->name('projects.comment');
+  Route::post('/projects/{project}/expenses',[\App\Http\Controllers\ProjectController::class,'expense'])->name('projects.expense');
+  Route::post('/projects/{project}/time',[\App\Http\Controllers\ProjectController::class,'time'])->name('projects.time');
+  Route::post('/projects/{project}/attachments',[\App\Http\Controllers\ProjectController::class,'upload'])->middleware('throttle:10,1')->name('projects.upload');
+  Route::get('/projects/{project}/attachments/{attachment}',[\App\Http\Controllers\ProjectController::class,'download'])->whereNumber('attachment')->name('projects.download');
+  Route::delete('/projects/{project}/attachments/{attachment}',[\App\Http\Controllers\ProjectController::class,'deleteAttachment'])->whereNumber('attachment')->name('projects.attachment.delete');
   Route::get('/team',[\App\Http\Controllers\TeamController::class,'index'])->name('team.index');
   Route::post('/team/departments',[\App\Http\Controllers\TeamController::class,'department'])->name('team.department');
   Route::put('/team/profiles/{user}',[\App\Http\Controllers\TeamController::class,'profile'])->whereNumber('user')->name('team.profile');
