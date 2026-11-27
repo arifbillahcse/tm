@@ -1,5 +1,5 @@
 # Development status
-- Phases 0–3 completed; Phase 3 final CI 45926362122 passed 21 tests / 66 assertions and PR #3 merged.
-- Phase 4: dashboard and shell implementation; final CI and PR merge required before completion.
+- Phases 0–3 completed.
+- Phase 4: initial CI 45926822371 passed 28 tests / 99 assertions, both dependency audits passed. UI and isolation hardening added; final CI and merge of PR #4 required. See https://github.com/arifbillahcse/tm/pull/4 for authoritative merge status.
 - Phases 5–20 not started.
 No production deployment. See docs/UI.md for scope and limitations.
