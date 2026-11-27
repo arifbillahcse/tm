@@ -32,7 +32,7 @@
    <button class="icon-button" type="button" data-sidebar-toggle aria-controls="sidebar" aria-expanded="true" aria-label="Toggle navigation">☰</button>
    <span class="breadcrumb">Workspace / @yield('title','Overview')</span>
    <div class="top-actions">
-    <button class="search-trigger" type="button" data-search-open aria-label="Open search"><span aria-hidden="true">⌕</span><span class="desktop-only">Search anything</span><kbd class="desktop-only">Ctrl K</kbd></button>
+    <button class="search-trigger" type="button" data-search-open aria-label="Open search"><span aria-hidden="true">⌕</span><span class="desktop-only">Search pages</span><kbd class="desktop-only">Ctrl K</kbd></button>
     <button class="icon-button" data-theme-toggle type="button" aria-label="Switch color theme">◐</button>
     <a class="icon-button" href="{{ route('notifications.index') }}" aria-label="Notifications">◉</a>
     <a class="user-avatar" href="{{ route('profile') }}" aria-label="Your profile">{{ mb_substr(auth()->user()->name,0,1) }}</a>
@@ -44,5 +44,5 @@
   </main>
  </div>
 </div>
-<dialog id="search-dialog" class="search-dialog"><form method="GET" action="{{ route('search') }}"><div class="dialog-heading"><h2>Search workspace</h2><button type="button" data-search-close aria-label="Close search">×</button></div><label for="quick-search">Search pages or accessible workspaces</label><input id="quick-search" class="field" name="q" maxlength="100" autofocus><button class="btn">Search</button></form></dialog>
+<dialog id="search-dialog" class="search-dialog" aria-labelledby="search-title"><form method="GET" action="{{ route('search') }}"><div class="dialog-heading"><h2 id="search-title">Search workspace</h2><button type="button" data-search-close aria-label="Close search">×</button></div><label for="quick-search">Search pages or accessible workspaces</label><input id="quick-search" class="field" name="q" maxlength="100" autofocus><button class="btn">Search</button></form></dialog>
 </body></html>
