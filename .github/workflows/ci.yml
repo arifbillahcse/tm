@@ -68,6 +68,8 @@ jobs:
           php artisan test
           php artisan migrate:rollback --force
           php artisan migrate --force
+      - name: Lint production preflight script
+        run: php -l scripts/production-preflight.php
       - name: Dependency audits
         run: |
           composer audit
