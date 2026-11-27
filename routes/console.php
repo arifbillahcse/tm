@@ -15,3 +15,6 @@ Artisan::command('workspace:bootstrap-owner {email}',function(){
 
 Artisan::command('tasks:tick',function(){app(\App\Services\TaskService::class)->tick();$this->info('Task scheduler complete.');})->purpose('Generate recurring tasks and record due reminders');
 \Illuminate\Support\Facades\Schedule::command('tasks:tick')->everyMinute()->withoutOverlapping();
+
+Artisan::command('finance:tick',function(){\App\Services\FinanceAccess::tick();$this->info('Finance scheduler complete.');});
+\Illuminate\Support\Facades\Schedule::command('finance:tick')->everyMinute()->withoutOverlapping();
