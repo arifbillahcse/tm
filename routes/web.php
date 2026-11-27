@@ -157,11 +157,11 @@ Route::middleware(NoStore::class)->group(function(){
   Route::get('/tasks/{task}/attachments/{attachment}',[\App\Http\Controllers\TaskController::class,'download'])->name('tasks.attachments.download');
   Route::delete('/tasks/{task}/attachments/{attachment}',[\App\Http\Controllers\TaskController::class,'removeAttachment'])->name('tasks.attachments.remove');
   Route::get('/intelligence',[\App\Http\Controllers\IntelligenceController::class,'index'])->middleware('throttle:30,1')->name('intelligence.index');
-  Route::get('/intelligence',[\App\Http\Controllers\IntelligenceController::class,'index'])->middleware('throttle:30,1')->name('intelligence.index');
-  Route::get('/intelligence',[\App\Http\Controllers\IntelligenceController::class,'index'])->middleware('throttle:30,1')->name('intelligence.index');
-  Route::get('/intelligence',[\App\Http\Controllers\IntelligenceController::class,'index'])->middleware('throttle:30,1')->name('intelligence.index');
-  Route::get('/intelligence',[\App\Http\Controllers\IntelligenceController::class,'index'])->middleware('throttle:30,1')->name('intelligence.index');
-  Route::get('/intelligence',[\App\Http\Controllers\IntelligenceController::class,'index'])->middleware('throttle:30,1')->name('intelligence.index');
+  Route::get('/intelligence/report',[\App\Http\Controllers\IntelligenceController::class,'report'])->middleware('throttle:30,1')->name('intelligence.report');
+  Route::get('/intelligence/plan',[\App\Http\Controllers\IntelligenceController::class,'plan'])->middleware('throttle:30,1')->name('intelligence.plan');
+  Route::get('/intelligence/summary',[\App\Http\Controllers\IntelligenceController::class,'summary'])->middleware('throttle:10,1')->name('intelligence.summary');
+  Route::post('/intelligence/ask',[\App\Http\Controllers\IntelligenceController::class,'ask'])->middleware('throttle:5,1')->name('intelligence.ask');
+  Route::get('/intelligence/settings',[\App\Http\Controllers\IntelligenceController::class,'settings'])->middleware('throttle:30,1')->name('intelligence.settings');
   Route::get('/dashboard',[\App\Http\Controllers\DashboardController::class,'index'])->name('dashboard');
   Route::get('/search',[\App\Http\Controllers\DashboardController::class,'search'])->middleware('throttle:60,1')->name('search');
   Route::get('/notifications',[\App\Http\Controllers\DashboardController::class,'notifications'])->name('notifications.index');
