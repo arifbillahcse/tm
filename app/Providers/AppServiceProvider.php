@@ -10,6 +10,7 @@ class AppServiceProvider extends ServiceProvider {
  public function register(): void {}
  public function boot(): void {
   Gate::policy(Workspace::class,WorkspacePolicy::class);
+  Gate::policy(\App\Models\Task::class,\App\Policies\TaskPolicy::class);
   View::composer('layouts.shell',function($view){
    if(!auth()->check())return;
    $context=app(WorkspaceContext::class);
