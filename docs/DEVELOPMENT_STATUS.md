@@ -1,8 +1,10 @@
 # Development status
-- Phases 0–16: previously implemented; confirm each merged PR and release baseline against Git history before production sign-off.
-- Phase 17: merged into develop as PR #17 (squash commit f97d216); CI run 46040715206 passed 174 tests / 1,223 assertions and Composer/NPM dependency audits.
-- Phase 18: PR #18 remains an open draft. Latest verified commit f3bfdd0; CI run 46044044982 passed. PWA install/offline boundaries and encrypted subscription storage are implemented. VAPID sender/key provisioning and real-device install/push acceptance remain outstanding. Not merged.
-- Phase 19: PR #19 remains a draft stacked on feature/phase-18. CI run 46052095264 passed 181 tests / 1,265 assertions and Composer/NPM audits. Added baseline security headers, cache/HSTS/accessibility regression checks, and batched timezone-aware dashboard habit statistics. Further full application security, accessibility, performance, backup/restore and target-environment reviews remain outstanding.
-- Backup/restore staging environment: owner says it will be arranged later; restore drill is blocked until a disposable environment is available.
-- Phase 20: not started.
-No production deployment has been performed. Owner approval is required for any production deployment after release criteria are met; prior approval does not waive the phase exit criteria.
+Verified repository state on 2026-11-28:
+- Phase 15: PR #15 merged to develop (merge history previously verified).
+- Phase 16: implementation exists; confirm final review/merge state from GitHub before release.
+- Phase 17: PR #17 merged to develop; its CI passed at the time of merge.
+- Phase 18: PR #18 is open draft, `feature/phase-18` -> `develop`; latest verified CI run #82? No: Phase 18 last known passing run is #72 / commit f3bfdd0. Push notifications remain a foundation; real push sender/device acceptance not verified.
+- Phase 19: PR #19 is open draft, `feature/phase-19` -> `feature/phase-18`; CI run #82 (commit e025a9f) passed. Subsequent commits add security review notes and redact AI source titles; their latest CI must be checked before merge. Full manual security, accessibility, performance, encrypted backup/restore and production configuration acceptance remain outstanding.
+- Phase 20: work started on `feature/phase-20`, stacked on `feature/phase-19`. Added release exit criteria, a read-only production preflight script and a guarded deployment/rollback runbook. CI validation is pending.
+- Staging/restore environment: owner plans to arrange later; restore acceptance is blocked until a disposable environment is available.
+- Production deployment: not performed. This work does not authorize deployment. Explicit approval of the exact target and window is required after all exit criteria pass.
