@@ -19,8 +19,8 @@ Route::middleware(NoStore::class)->group(function(){
  Route::view('/invite','identity.invite')->middleware(SessionVersion::class)->name('invite');
  Route::post('/invite',[W::class,'accept'])->middleware([SessionVersion::class,'throttle:5,1']);
  Route::middleware(['auth',SessionVersion::class])->group(function(){
-  Route::post('/push-subscriptions',[\App\\Http\\Controllers\\PushSubscriptionController::class,'store'])->middleware('throttle:10,1')->name('push-subscriptions.store');
-  Route::delete('/push-subscriptions',[\App\\Http\\Controllers\\PushSubscriptionController::class,'destroy'])->middleware('throttle:10,1')->name('push-subscriptions.destroy');
+  Route::post('/push-subscriptions',[\App\Http\Controllers\PushSubscriptionController::class,'store'])->middleware('throttle:10,1')->name('push-subscriptions.store');
+  Route::delete('/push-subscriptions',[\App\Http\Controllers\PushSubscriptionController::class,'destroy'])->middleware('throttle:10,1')->name('push-subscriptions.destroy');
   Route::get('/communication',[\App\Http\Controllers\CommunicationController::class,'index'])->middleware('throttle:60,1')->name('communication.index');
   Route::post('/communication',[\App\Http\Controllers\CommunicationController::class,'store'])->middleware('throttle:10,1')->name('communication.store');
   Route::get('/communication/{id}',[\App\Http\Controllers\CommunicationController::class,'show'])->whereNumber('id')->middleware('throttle:60,1')->name('communication.show');
