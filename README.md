@@ -7,7 +7,7 @@ Requires PHP 8.3 (Composer 2 and Laravel-required extensions), Node.js 22, npm a
 ```sh
 cp .env.example .env
 composer install
-npm install
+npm ci
 php artisan key:generate
 # Configure DB_* in .env before migrating.
 php artisan migrate
@@ -16,7 +16,7 @@ php artisan serve
 ```
 Run tests only against a disposable database (RefreshDatabase may reset it). Set DB_* to the dedicated test database before running php artisan test. For local development, use npm run dev and php artisan serve in separate terminals. Livewire supplies Alpine.js. No default user or public registration. Phase 3 adds identity and workspace controls. Do not expose this foundation to production.
 
-CI initially resolves missing lockfiles and uploads them as artifacts; commit verified locks before Phase 2 is complete. Once present, Composer install and npm ci use committed locks.
+CI requires committed composer.lock and package-lock.json and installs dependencies reproducibly using composer install and npm ci.
 
 ## Documentation
 - [Project overview](docs/PROJECT_OVERVIEW.md)
