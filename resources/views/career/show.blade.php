@@ -1,0 +1,8 @@
+@extends('layouts.shell')
+@section('title','Career record')
+@section('content')
+<div class="page-heading"><div><p class="eyebrow">{{ $type['label'] }} · {{ $record->status }}</p><h1>{{ $record->title }}</h1></div><div class="task-tabs"><a class="btn secondary" href="{{ route('career.index') }}">Career center</a><a class="btn" href="{{ route('career.edit',$record) }}">Edit</a></div></div>
+<x-ui.card><p>Target / follow-up: {{ $record->target_date?->toDateString()??'Not set' }}</p><p class="task-description">{{ $record->description }}</p>@foreach($type['fields'] as $key=>$format)@if(isset($record->details[$key]))<div class="goal-item"><strong>{{ ucfirst(str_replace('_',' ',$key)) }}</strong>@if($format==='url')<a href="{{ $record->details[$key] }}" target="_blank" rel="noopener noreferrer">{{ $record->details[$key] }}</a>@elseif($format==='percent')<progress class="goal-progress" max="100" value="{{ $record->details[$key] }}" aria-label="Course progress"></progress><p>{{ $record->details[$key] }}%</p>@else<p class="task-description">{{ $record->details[$key] }}</p>@endif</div>@endif @endforeach</x-ui.card>
+<x-ui.card><h2>Revision history</h2>@forelse($revisions as $revision)<details><summary>Version {{ $revision->version }} · {{ $revision->created_at->format('Y-m-d H:i') }} UTC</summary><pre class="knowledge-editor">{{ json_encode($revision->snapshot,JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE) }}</pre></details>@empty<p>No earlier versions.</p>@endforelse{{ $revisions->links() }}</x-ui.card>
+<x-ui.card><form method="POST" action="{{ route('career.destroy',$record) }}">@csrf @method('DELETE')<button class="btn secondary">Delete record and revisions</button><p>Learning logs are retained without this record link.</p></form></x-ui.card>
+@endsection
