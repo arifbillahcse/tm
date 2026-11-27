@@ -12,7 +12,7 @@ class IntelligenceController {
  public function __construct(private WorkspaceContext $context,private WorkspaceAnalytics $analytics,private LocalAssistant $assistant){}
  private function workspace(Request $r){$w=$this->context->current($r);abort_unless($w->roleFor($r->user()),403);return $w;}
  private function personal(Request $r){$w=$this->workspace($r);abort_unless($w->type==='personal'&&(int)$w->owner_id===(int)$r->user()->id,403);return $w;}
- private function redact(string $text):string{
+ public function redact(string $text):string{
   $text=preg_replace('/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/iu','[redacted-email]',$text);
   $text=preg_replace('/(?<!\w)(?:\+?\d[\d\s().-]{7,}\d)(?!\w)/u','[redacted-phone]',$text);
   $text=preg_replace('/(?i)\b(password|passwd|secret|api[_-]?key|access[_-]?token|refresh[_-]?token|private[_-]?key)\s*[:=]\s*[^\s,;]+/u','$1=[redacted]',$text);
