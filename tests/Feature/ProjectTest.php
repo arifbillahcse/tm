@@ -28,4 +28,18 @@ class ProjectTest extends TestCase {
  public function test_time_cap_and_foreign_task():void{[$w,$o,$m,$a]=$this->team();$p=$this->project($w,$o);$other=$this->project($w,$o);$this->travelTo(Carbon::parse('2026-11-27 12:00 UTC'));$this->login($o,$w)->post($this->path($other,'/tasks'),$this->taskData())->assertRedirect();$d=['description'=>'Work','local_date'=>'2026-11-27','minutes'=>1000];$this->post($this->path($p,'/time'),$d+['project_task_id'=>DB::table('project_tasks')->value('id')])->assertNotFound();$this->post($this->path($p,'/time'),$d)->assertRedirect();$this->post($this->path($other,'/time'),$d)->assertSessionHasErrors('minutes');}
  public function test_private_files_and_wrong_parent():void{Storage::fake('local');[$w,$o,$m,$a]=$this->team();$p=$this->project($w,$o);$other=$this->project($w,$o);$this->login($o,$w)->post($this->path($p,'/attachments'),['file'=>UploadedFile::fake()->createWithContent('brief.txt','example')])->assertRedirect();$f=DB::table('project_attachments')->first();$this->get($this->path($p,'/attachments/'.$f->id))->assertOk()->assertDownload('brief.txt');$this->get($this->path($other,'/attachments/'.$f->id))->assertNotFound();$this->login($a,$w)->get($this->path($p,'/attachments/'.$f->id))->assertForbidden();$this->login($o,$w)->delete($this->path($p,'/attachments/'.$f->id))->assertRedirect();Storage::disk('local')->assertMissing($f->path);}
  public function test_archive_comments_dashboard_and_activity():void{[$w,$o,$m,$a]=$this->team();$p=$this->project($w,$o);$this->login($o,$w)->post($this->path($p,'/comments'),['body'=>'<script>alert(1)</script>'])->assertRedirect();$this->get($this->path($p))->assertOk()->assertDontSee('<script>alert(1)</script>',false)->assertSee('project comment created');$this->get('/dashboard')->assertOk()->assertSee('Project management');$this->patch($this->path($p,'/status'),['status'=>'archived'])->assertRedirect();$this->post($this->path($p,'/comments'),['body'=>'Forbidden'])->assertStatus(409);}
+ public function test_completed_project_and_task_integrity():void{
+  [$w,$o,$m,$a]=$this->team();$p=$this->project($w,$o);
+  $this->login($o,$w)->post($this->path($p,'/tasks'),$this->taskData())->assertRedirect();
+  $t=DB::table('project_tasks')->value('id');
+  $this->patch($this->path($p,"/tasks/$t/status"),['status'=>'completed','version'=>1])->assertRedirect();
+  $this->patch($this->path($p,"/tasks/$t/assign"),['assignee_id'=>$o->id,'version'=>2])->assertSessionHasErrors('assignee_id');
+  $this->post($this->path($p,'/milestones'),['title'=>'Delivery','due_date'=>'2026-12-10'])->assertRedirect();
+  $this->patch($this->path($p,'/status'),['status'=>'completed'])->assertSessionHasErrors('status');
+  $this->patch($this->path($p,'/milestones/'.DB::table('project_milestones')->value('id')),[])->assertRedirect();
+  $this->patch($this->path($p,'/status'),['status'=>'completed'])->assertRedirect();
+  $this->post($this->path($p,'/tasks'),$this->taskData())->assertStatus(409);
+  $this->patch($this->path($p,'/status'),['status'=>'active'])->assertRedirect();
+  $this->post($this->path($p,'/tasks'),$this->taskData())->assertRedirect();
+ }
 }
