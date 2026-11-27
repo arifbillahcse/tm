@@ -18,7 +18,7 @@ class CalendarService {
   $n=$event->recurrence?min(52,max(1,$event->repeat_count)):1;
   for($i=0;$i<$n;$i++){
    $shift=fn($d)=>match($event->recurrence){'daily'=>$d->copy()->addDays($i),'weekly'=>$d->copy()->addWeeks($i),'monthly'=>$d->copy()->addMonthsNoOverflow($i),default=>$d->copy()};
-   $out[]=['event'=>$event,'start'=>$shift($start)->utc(),'end'=>$shift($end)->utc(),'index'=>$i];
+   $s=$shift($start)->utc();$e=$shift($end)->utc();$out[]=['event'=>$event,'start'=>$s,'end'=>$e,'index'=>$i];
   }return $out;
  }
  public function range(Workspace $w,Carbon $from,Carbon $to): array {
