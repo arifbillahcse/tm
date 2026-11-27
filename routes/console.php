@@ -12,3 +12,6 @@ Artisan::command('workspace:bootstrap-owner {email}',function(){
  if(User::exists()){$this->error('Bootstrap is available only before any account exists.');return 1;}
  DB::transaction(function()use($email,$name,$password){$user=User::create(compact('email','name','password'));Identity::personal($user);Identity::audit('owner_bootstrapped',$user);});$this->info('Owner created. Sign in and enroll 2FA.');return 0;
 })->purpose('Create the initial account from a trusted server terminal');
+
+Artisan::command('tasks:tick',function(){app(\App\Services\TaskService::class)->tick();$this->info('Task scheduler complete.');})->purpose('Generate recurring tasks and record due reminders');
+\Illuminate\Support\Facades\Schedule::command('tasks:tick')->everyMinute()->withoutOverlapping();
