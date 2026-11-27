@@ -19,6 +19,18 @@ Route::middleware(NoStore::class)->group(function(){
  Route::view('/invite','identity.invite')->middleware(SessionVersion::class)->name('invite');
  Route::post('/invite',[W::class,'accept'])->middleware([SessionVersion::class,'throttle:5,1']);
  Route::middleware(['auth',SessionVersion::class])->group(function(){
+  Route::get('/goals/vision',[\App\Http\Controllers\GoalController::class,'vision'])->name('goals.vision');
+  Route::get('/goals/reports',[\App\Http\Controllers\GoalController::class,'reports'])->name('goals.reports');
+  Route::post('/goals/reviews',[\App\Http\Controllers\GoalController::class,'review'])->name('goals.reviews.store');
+  Route::post('/goals/{goal}/milestones',[\App\Http\Controllers\GoalController::class,'addMilestone'])->name('goals.milestones.store');
+  Route::patch('/goals/{goal}/milestones/{milestone}',[\App\Http\Controllers\GoalController::class,'milestone'])->name('goals.milestones.update');
+  Route::delete('/goals/{goal}/milestones/{milestone}',[\App\Http\Controllers\GoalController::class,'deleteMilestone'])->name('goals.milestones.delete');
+  Route::post('/goals/{goal}/tasks',[\App\Http\Controllers\GoalController::class,'link'])->name('goals.tasks.link');
+  Route::delete('/goals/{goal}/tasks/{task}',[\App\Http\Controllers\GoalController::class,'unlink'])->name('goals.tasks.unlink');
+  Route::resource('goals',\App\Http\Controllers\GoalController::class);
+  Route::post('/habits/{habit}/check',[\App\Http\Controllers\HabitController::class,'check'])->name('habits.check');
+  Route::get('/habits/{habit}/history',[\App\Http\Controllers\HabitController::class,'history'])->name('habits.history');
+  Route::resource('habits',\App\Http\Controllers\HabitController::class)->except(['show']);
   Route::get('/calendar/templates',[\App\Http\Controllers\CalendarController::class,'templates'])->name('calendar.templates');
   Route::post('/calendar/templates',[\App\Http\Controllers\CalendarController::class,'storeTemplate'])->name('calendar.templates.store');
   Route::post('/calendar/templates/{template}/apply',[\App\Http\Controllers\CalendarController::class,'applyTemplate'])->name('calendar.templates.apply');
