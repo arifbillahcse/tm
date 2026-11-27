@@ -12,7 +12,7 @@ class ProjectAccess {
   return $q;
  }
  public static function lock(Workspace $w,User $u,Project $p,string $ability='view'):Project{
-  TeamAccess::lock($w,$u);$p=Project::where('workspace_id',$w->id)->lockForUpdate()->findOrFail($p->id);Gate::forUser($u)->authorize($ability,$p);abort_if($p->status==='archived',409,'Project archived.');return $p;
+  TeamAccess::lock($w,$u);$p=Project::where('workspace_id',$w->id)->lockForUpdate()->findOrFail($p->id);Gate::forUser($u)->authorize($ability,$p);abort_if($p->status!=='active',409,'Reopen project before making changes.');return $p;
  }
  public static function stats(Workspace $w,User $u):array{
   $q=self::visible($w,$u);$ids=(clone $q)->select('id');$tasks=DB::table('project_tasks')->whereIn('project_id',$ids);
