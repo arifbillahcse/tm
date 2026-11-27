@@ -19,6 +19,14 @@ Route::middleware(NoStore::class)->group(function(){
  Route::view('/invite','identity.invite')->middleware(SessionVersion::class)->name('invite');
  Route::post('/invite',[W::class,'accept'])->middleware([SessionVersion::class,'throttle:5,1']);
  Route::middleware(['auth',SessionVersion::class])->group(function(){
+  Route::get('/career/skills',[\App\Http\Controllers\CareerController::class,'skills'])->name('career.skills');
+  Route::post('/career/skills',[\App\Http\Controllers\CareerController::class,'saveSkill'])->name('career.skills.store');
+  Route::put('/career/skills/{skill}',[\App\Http\Controllers\CareerController::class,'saveSkill'])->name('career.skills.update');
+  Route::delete('/career/skills/{skill}',[\App\Http\Controllers\CareerController::class,'deleteSkill'])->name('career.skills.delete');
+  Route::get('/career/learning',[\App\Http\Controllers\CareerController::class,'learning'])->name('career.learning');
+  Route::post('/career/learning',[\App\Http\Controllers\CareerController::class,'saveLearning'])->name('career.learning.store');
+  Route::delete('/career/learning/{session}',[\App\Http\Controllers\CareerController::class,'deleteLearning'])->name('career.learning.delete');
+  Route::resource('career',\App\Http\Controllers\CareerController::class)->parameters(['career'=>'record']);
   Route::post('/knowledge/folders',[\App\Http\Controllers\KnowledgeController::class,'folder'])->name('knowledge.folders.store');
   Route::get('/knowledge/{note}/export',[\App\Http\Controllers\KnowledgeController::class,'export'])->name('knowledge.export');
   Route::post('/knowledge/{note}/attachments',[\App\Http\Controllers\KnowledgeController::class,'upload'])->middleware('throttle:10,1')->name('knowledge.attachments.upload');
