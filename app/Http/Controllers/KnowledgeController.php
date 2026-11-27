@@ -26,7 +26,7 @@ class KnowledgeController {
   if($d['kind']!=='journal')$d['journal_date']=null;
   return $d;
  }
- private function form(Request $r,Note $note){$w=$this->workspace($r);$folders=KnowledgeFolder::where('workspace_id',$w->id)->orderBy('name')->get();$choices=Note::where('workspace_id',$w->id)->when($note->exists,fn($q)=>$q->whereKeyNot($note->id))->orderBy('title')->limit(200)->get(['id','title']);$selected=$note->exists?$note->links()->where('notes.workspace_id',$w->id)->pluck('notes.id')->all():[];return view('knowledge.form',compact('note','folders','choices','selected'));}
+ private function form(Request $r,Note $note){$w=$this->workspace($r);$folders=KnowledgeFolder::where('workspace_id',$w->id)->orderBy('name')->get();$selected=$note->exists?$note->links()->where('notes.workspace_id',$w->id)->pluck('notes.id')->all():[];$choices=Note::where('workspace_id',$w->id)->when($note->exists,fn($q)=>$q->whereKeyNot($note->id))->orderBy('title')->limit(200)->get(['id','title']);if($selected)$choices=$choices->merge(Note::where('workspace_id',$w->id)->whereIn('id',$selected)->get(['id','title']))->unique('id')->sortBy('title')->values();return view('knowledge.form',compact('note','folders','choices','selected'));}
  public function create(Request $r){return $this->form($r,new Note(['kind'=>'note','archived'=>false,'tags'=>[]]));}
  public function store(Request $r){$w=$this->workspace($r);$n=$this->service->save($w,$r->user(),$this->data($r));return redirect()->route('knowledge.show',$n);}
  public function edit(Request $r,Note $note){$this->allowed($r,$note);return $this->form($r,$note);}
