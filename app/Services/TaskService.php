@@ -27,7 +27,7 @@ class TaskService {
    if(($data['status']??'pending')==='completed'){
     if(Task::where('workspace_id',$workspace->id)->whereIn('id',$deps)->where('status','!=','completed')->exists()||(!$new&&$task->children()->where('status','!=','completed')->exists()))throw ValidationException::withMessages(['status'=>'Complete all dependencies and subtasks first.']);
     if($previous!=='completed')$task->completed_at=now();
-   }else{if(!$new&&$previous==='completed'&&(Task::where('workspace_id',$workspace->id)->where('status','completed')->whereHas('dependencies',fn($q)=>$q->where('tasks.id',$task->id))->exists()||($parent&&Task::whereKey($parent)->where('status','completed')->exists())))throw ValidationException::withMessages(['status'=>'Reopen dependent tasks and the parent first.']);$task->completed_at=null;}
+   }else{if(!$new&&$previous==='completed'&&(Task::where('workspace_id',$workspace->id)->where('status','completed')->whereIn('id',DB::table('task_dependencies')->where('depends_on_id',$task->id)->select('task_id'))->exists()||($parent&&Task::whereKey($parent)->where('status','completed')->exists())))throw ValidationException::withMessages(['status'=>'Reopen dependent tasks and the parent first.']);$task->completed_at=null;}
    if($new){$task->workspace_id=$workspace->id;$task->creator_id=$user->id;}
    if($task->remind_at?->format('Y-m-d H:i:s')!==($data['remind_at']??null))$task->reminded_at=null;
    $task->fill($data);$task->save();$task->dependencies()->sync($deps);$this->record($task,$user,$new?'created':'updated');
