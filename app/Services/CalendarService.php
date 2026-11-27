@@ -11,6 +11,10 @@ class CalendarService {
  public function local(string $value,string $tz): Carbon {
   $date=Carbon::createFromFormat('!Y-m-d\TH:i',$value,$tz);
   if(!$date||$date->format('Y-m-d\TH:i')!==$value)throw ValidationException::withMessages(['starts_at'=>'Invalid local time in your timezone.']);
+  // Reject ambiguous fall-back input instead of silently selecting an offset.
+  $wall=Carbon::createFromFormat('!Y-m-d\TH:i',$value,'UTC')->timestamp;
+  $transitions=(new \DateTimeZone($tz))->getTransitions($wall-172800,$wall+172800)?:[];
+  for($i=1;$i<count($transitions);$i++){$before=$transitions[$i-1]['offset'];$after=$transitions[$i]['offset'];$at=$transitions[$i]['ts'];if($after<$before&&$wall>=$at+$after&&$wall<$at+$before)throw ValidationException::withMessages(['starts_at'=>'Ambiguous local time during daylight saving change. Choose another time.']);}
   return $date->utc();
  }
  public function occurrences(CalendarEvent $event): array {
@@ -37,6 +41,7 @@ class CalendarService {
    if(($data['kind']==='task')!==!empty($data['task_id']))throw ValidationException::withMessages(['task_id'=>'Task blocks require a linked task; other events cannot link tasks.']);
    $new=!$event->exists;$event->fill($data);$event->workspace_id=$w->id;$event->creator_id=$u->id;
    $occ=$this->occurrences($event);$last=null;
+   foreach($occ as $o){if($event->recurrence){$localStart=$o['start']->copy()->setTimezone($event->timezone);$localEnd=$o['end']->copy()->setTimezone($event->timezone);if($localStart->format('H:i')!==$event->starts_at->copy()->setTimezone($event->timezone)->format('H:i')||$localEnd->format('H:i')!==$event->ends_at->copy()->setTimezone($event->timezone)->format('H:i'))throw ValidationException::withMessages(['starts_at'=>'A repetition falls into an invalid daylight saving time. Choose another time.']);$this->local($localStart->format('Y-m-d\TH:i'),$event->timezone);$this->local($localEnd->format('Y-m-d\TH:i'),$event->timezone);}}
    foreach($occ as $o){
     if(!$o['end']->gt($o['start'])||($last&&$last->gt($o['start'])))throw ValidationException::withMessages(['ends_at'=>'Events must have a positive duration and cannot overlap their own repetitions.']);
     $last=$o['end'];
