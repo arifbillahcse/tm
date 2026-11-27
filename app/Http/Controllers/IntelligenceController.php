@@ -33,7 +33,7 @@ class IntelligenceController {
   try{$answer=$this->assistant->answer($d['question'],$context);}catch(RuntimeException $e){report($e);throw ValidationException::withMessages(['question'=>'The local AI service is unavailable. Your data was not changed.']);}
   // Re-check workspace membership after model inference before returning any answer.
   $after=$this->personal($r);abort_unless((int)$after->id===(int)$w->id,403);
-  return response()->json(['answer'=>$answer,'sources'=>$notes->map(fn($n)=>['id'=>$n->id,'title'=>$n->title])->values()])->header('Cache-Control','no-store, private');
+  return response()->json(['answer'=>$answer,'sources'=>$notes->map(fn($n)=>['id'=>$n->id,'title'=>$this->redact($n->title)])->values()])->header('Cache-Control','no-store, private');
  }
  public function settings(Request $r){$this->workspace($r);return view('intelligence.settings',['enabled'=>(bool)config('intelligence.enabled'),'model'=>$this->assistant->model(),'endpoint'=>'127.0.0.1:11434']);}
 }

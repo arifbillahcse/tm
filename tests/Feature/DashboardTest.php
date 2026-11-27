@@ -2,6 +2,9 @@
 namespace Tests\Feature;
 use App\Models\User;
 use App\Models\Workspace;
+use App\Models\Habit;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use App\Services\Identity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -19,4 +22,16 @@ class DashboardTest extends TestCase {
  public function test_forged_personal_membership_cannot_switch_or_become_current(): void {$u=User::factory()->create();$other=User::factory()->create();$p=Identity::personal($other);$p->update(['name'=>'Hidden private space']);$p->members()->attach($u->id,['role'=>'admin']);$this->login($u)->post('/workspaces/'.$p->id.'/switch')->assertForbidden();$this->withSession(['workspace_id'=>$p->id])->get('/dashboard')->assertOk()->assertDontSee('Hidden private space');}
  public function test_workspace_names_are_escaped(): void {$u=User::factory()->create();$w=$this->business($u,'<script>alert(1)</script>');$this->login($u)->withSession(['workspace_id'=>$w->id])->get('/dashboard')->assertOk()->assertSee('&lt;script&gt;alert(1)&lt;/script&gt;',false)->assertDontSee('<script>alert(1)</script>',false);}
  public function test_search_and_notifications_are_not_cached(): void {$u=User::factory()->create();$this->login($u);foreach(['/search?q=Personal','/notifications'] as $url)$this->get($url)->assertOk()->assertHeader('Cache-Control','no-store, private');}
+ public function test_dashboard_batches_habit_checkins_and_respects_each_habit_timezone(): void {
+  $u=User::factory()->create(['timezone'=>'UTC']);$w=Identity::personal($u);
+  $this->travelTo(Carbon::parse('2026-11-27 18:00:00 UTC'));
+  foreach([['Asia/Dhaka','2026-11-28'],['America/Los_Angeles','2026-11-27']] as [$timezone,$date]){
+   $habit=new Habit(['title'=>'Habit '.$timezone,'start_date'=>'2026-11-20','timezone'=>$timezone,'active'=>true]);$habit->workspace_id=$w->id;$habit->save();
+   $habit->entries()->create(['local_date'=>$date]);
+  }
+  $queries=[];DB::listen(function($query)use(&$queries){if(str_contains(strtolower($query->sql),'habit_entries'))$queries[]=$query->sql;});
+  $this->login($u)->get('/dashboard')->assertOk()->assertSee('2 / 2');
+  $this->assertCount(1,$queries,'Dashboard should fetch all timezone-specific daily habit check-ins with one aggregate query.');
+ }
+
 }
