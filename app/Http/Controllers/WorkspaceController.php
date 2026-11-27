@@ -34,7 +34,7 @@ class WorkspaceController {
   Notification::route('mail',$email)->notify(new WorkspaceInvite($token));return back()->with('status','Invitation sent.');
  }
  public function accept(Request $r){
-  $data=$r->validate(['token'=>'required|string|size:64','name'=>'nullable|string|max:255','password'=>['nullable','confirmed','max:72',Password::min(12)]]);
+  $data=$r->validate(['token'=>'required|string|size:64','name'=>'nullable|string|max:255','password'=>['nullable','confirmed','max:72',function ($attribute,$value,$fail) { if (is_string($value) && (strlen($value)>72 || str_contains($value, chr(0)))) $fail('The password must be at most 72 bytes and contain no null bytes.'); },Password::min(12)]]);
   $user=DB::transaction(function()use($r,$data){
    $i=Invitation::where('token_hash',hash('sha256',$data['token']))->lockForUpdate()->first();abort_unless($i&&$i->valid(),404);
    $w=$i->workspace;abort_unless($w->type==='business',403);
