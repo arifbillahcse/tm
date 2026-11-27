@@ -25,7 +25,8 @@
    @if($shellCurrent->type==='business')<x-ui.nav :href="route('team.index')" :active="request()->routeIs('team.*')" aria-label="Team"><span aria-hidden="true">♟</span><span class="nav-label">Team</span></x-ui.nav>@endif
    @if($shellCurrent->type==='business')<x-ui.nav :href="route('projects.index')" :active="request()->routeIs('projects.*')" aria-label="Projects"><span aria-hidden="true">▤</span><span class="nav-label">Projects</span></x-ui.nav>@endif
    @if(\App\Services\CrmAccess::canView($shellCurrent,auth()->user()))<x-ui.nav :href="route('crm.index')" :active="request()->routeIs('crm.*')" aria-label="CRM"><span aria-hidden="true">◇</span><span class="nav-label">CRM &amp; sales</span></x-ui.nav>@endif
-   @foreach($shellCurrent->type==='personal'?[]:['Finance','Infrastructure'] as $label)
+   @if(\App\Services\FinanceAccess::canView($shellCurrent,auth()->user()))<x-ui.nav :href="route('finance.index')" :active="request()->routeIs('finance.*')" aria-label="Finance"><span aria-hidden="true">৳</span><span class="nav-label">Finance</span></x-ui.nav>@endif
+   @foreach($shellCurrent->type==='personal'?[]:['Infrastructure'] as $label)
     <span class="nav-link unavailable nav-label">{{ $label }}<small>Soon</small></span>
    @endforeach
   </nav>
