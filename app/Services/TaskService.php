@@ -12,21 +12,22 @@ class TaskService {
  }
  public function save(Workspace $workspace,User $user,array $data,?Task $task=null): Task {
   return DB::transaction(function()use($workspace,$user,$data,$task){
-   Workspace::whereKey($workspace->id)->lockForUpdate()->firstOrFail();
+   $workspace=Workspace::whereKey($workspace->id)->lockForUpdate()->firstOrFail();
+   abort_unless($workspace->type==='personal'&&(int)$workspace->owner_id===(int)$user->id,403);
    $task=$task?Task::where('workspace_id',$workspace->id)->lockForUpdate()->findOrFail($task->id):new Task();
    $new=!$task->exists;$previous=$task->status;
    $parent=$data['parent_id']??null;$deps=array_map('intval',$data['dependencies']??[]);
    unset($data['dependencies']);
    if($parent&& !empty($data['recurrence']))throw ValidationException::withMessages(['recurrence'=>'Recurring subtasks are not supported.']);
-   if($parent){$p=Task::where('workspace_id',$workspace->id)->find($parent);if(!$p||$p->parent_id||$p->id===$task->id||(!$new&&$task->children()->exists()))throw ValidationException::withMessages(['parent_id'=>'Choose a top-level task. Only one level of subtasks is supported.']);}
+   if($parent){$p=Task::where('workspace_id',$workspace->id)->find($parent);if(!$p||$p->parent_id||$p->id===$task->id||(!$new&&($task->children()->exists()||$this->reaches($task,$p->id,$workspace->id)))||($p->status==='completed'&&$data['status']!=='completed'))throw ValidationException::withMessages(['parent_id'=>'Choose a top-level task. Only one level of subtasks is supported.']);}
    foreach($deps as $id){
     $candidate=Task::where('workspace_id',$workspace->id)->find($id);
-    if(!$candidate||$this->reaches($candidate,$task->id,$workspace->id))throw ValidationException::withMessages(['dependencies'=>'Invalid or circular dependency.']);
+    if(!$candidate||$this->reaches($candidate,$task->id,$workspace->id)||($parent&&$this->reaches($candidate,(int)$parent,$workspace->id)))throw ValidationException::withMessages(['dependencies'=>'Invalid or circular dependency.']);
    }
    if(($data['status']??'pending')==='completed'){
     if(Task::where('workspace_id',$workspace->id)->whereIn('id',$deps)->where('status','!=','completed')->exists()||(!$new&&$task->children()->where('status','!=','completed')->exists()))throw ValidationException::withMessages(['status'=>'Complete all dependencies and subtasks first.']);
     if($previous!=='completed')$task->completed_at=now();
-   }else{$task->completed_at=null;}
+   }else{if(!$new&&$previous==='completed'&&(Task::where('workspace_id',$workspace->id)->where('status','completed')->whereHas('dependencies',fn($q)=>$q->where('tasks.id',$task->id))->exists()||($parent&&Task::whereKey($parent)->where('status','completed')->exists())))throw ValidationException::withMessages(['status'=>'Reopen dependent tasks and the parent first.']);$task->completed_at=null;}
    if($new){$task->workspace_id=$workspace->id;$task->creator_id=$user->id;}
    if($task->remind_at?->format('Y-m-d H:i:s')!==($data['remind_at']??null))$task->reminded_at=null;
    $task->fill($data);$task->save();$task->dependencies()->sync($deps);$this->record($task,$user,$new?'created':'updated');
@@ -37,7 +38,7 @@ class TaskService {
   if(!$target)return false;
   $queue=[$from->id];$seen=[];
   while($queue){$id=array_pop($queue);if((int)$id===$target)return true;if(isset($seen[$id]))continue;$seen[$id]=true;
-   $node=Task::where('workspace_id',$workspace)->find($id);if($node)foreach($node->dependencies()->where('tasks.workspace_id',$workspace)->pluck('tasks.id') as $next)$queue[]=$next;
+   $node=Task::where('workspace_id',$workspace)->find($id);if($node){foreach($node->dependencies()->where('tasks.workspace_id',$workspace)->pluck('tasks.id') as $next)$queue[]=$next;foreach($node->children()->where('workspace_id',$workspace)->pluck('id') as $next)$queue[]=$next;}
   }return false;
  }
  public function tick(): void {
@@ -50,10 +51,11 @@ class TaskService {
    $base=$t->due_at->copy()->setTimezone($t->recurrence_timezone);
    $next=match($t->recurrence){'daily'=>$base->copy()->addDay(),'weekly'=>$base->copy()->addWeek(),'monthly'=>$base->copy()->addMonthNoOverflow(),default=>null};
    if(!$next)return;$root=$t->series_id??$t->id;$utc=$next->utc();
-   if(Task::withTrashed()->where('series_id',$root)->where('occurrence_at','>',$t->occurrence_at??$t->due_at)->exists())return;
+   if(Task::withTrashed()->where('previous_occurrence_id',$t->id)->exists())return;
+   if($t->series_id&&Task::withTrashed()->whereKey($root)->where(fn($q)=>$q->whereNotNull('deleted_at')->orWhereNull('recurrence'))->exists())return;
    if(Task::withTrashed()->where('series_id',$root)->where('occurrence_at',$utc)->exists())return;
    $copy=new Task(['title'=>$t->title,'description'=>$t->description,'priority'=>$t->priority,'status'=>'pending','due_at'=>$utc,'tags'=>$t->tags,'recurrence'=>$t->recurrence,'recurrence_timezone'=>$t->recurrence_timezone]);
-   $copy->workspace_id=$w->id;$copy->creator_id=$w->owner_id;$copy->series_id=$root;$copy->occurrence_at=$utc;
+   $copy->workspace_id=$w->id;$copy->creator_id=$w->owner_id;$copy->series_id=$root;$copy->previous_occurrence_id=$t->id;$copy->occurrence_at=$utc;
    if($t->remind_at)$copy->remind_at=$utc->copy()->subSeconds(max(0,$t->due_at->timestamp-$t->remind_at->timestamp));
    $copy->save();$u=User::find($w->owner_id);if($u)$this->record($copy,$u,'recurrence_created');
   });
