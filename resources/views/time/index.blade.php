@@ -1,0 +1,15 @@
+@extends('layouts.shell')
+@section('title','Focus timer')
+@section('content')
+<div class="page-heading"><div><h1>Focus timer</h1><p>Track actual focused work, not just planned time.</p></div><div class="task-tabs"><a class="btn secondary" href="{{ route('time.entries') }}">Timesheet</a><a class="btn secondary" href="{{ route('time.report') }}">Reports</a></div></div>
+<x-ui.card>
+@if($active)
+<p class="eyebrow">{{ str_replace('_',' ',$active->mode) }} · {{ $active->state }}</p><h2>{{ $active->title }}</h2>
+<div class="focus-clock" data-focus-elapsed="{{ $elapsed }}" data-focus-target="{{ $active->target_seconds }}" data-focus-running="{{ $active->state==='running'?'1':'0' }}" aria-label="Remaining time">{{ gmdate('H:i:s',max(0,$active->target_seconds-$elapsed)) }}</div><p>Elapsed <span data-focus-actual>{{ gmdate('H:i:s',$elapsed) }}</span> · Target {{ $active->target_seconds/60 }} minutes</p><p data-focus-notice>Timer records actual time until paused or stopped, including overtime.</p>
+<div class="task-tabs">@foreach([$active->state==='running'?'pause':'resume','stop'] as $action)<form method="POST" action="{{ route('time.transition',$active) }}">@csrf<input type="hidden" name="version" value="{{ $active->version }}"><input type="hidden" name="action" value="{{ $action }}"><button class="btn {{ $action==='stop'?'secondary':'' }}">{{ ucfirst($action) }}</button></form>@endforeach</div>
+@else
+<form method="POST" action="{{ route('time.start') }}" class="identity-content">@csrf<label>Session title<input class="field" name="title" required maxlength="200" value="{{ old('title','Focused work') }}"></label><div class="task-filters"><label>Mode<select class="field" name="mode" data-focus-mode>@foreach(['pomodoro'=>'Pomodoro','deep'=>'Deep work','custom'=>'Custom','short_break'=>'Short break','long_break'=>'Long break'] as $key=>$label)<option value="{{ $key }}" @selected(old('mode','pomodoro')===$key)>{{ $label }}</option>@endforeach</select></label><label>Minutes<input class="field" name="minutes" data-focus-minutes type="number" min="1" max="480" required value="{{ old('minutes',25) }}"></label><label>Billable<select class="field" name="billable"><option value="0">No</option><option value="1" @selected(old('billable')==='1')>Yes</option></select></label><label>Linked task<select class="field" name="task_id"><option value="">None</option>@foreach($tasks as $task)<option value="{{ $task->id }}" @selected((string)old('task_id')===(string)$task->id)>{{ $task->title }}</option>@endforeach</select></label></div><button class="btn">Start session</button></form>
+@endif
+</x-ui.card>
+<x-ui.card><h2>Completed sessions</h2>@forelse($sessions as $session)<div class="result-row"><div><strong>{{ $session->title }}</strong><small>{{ str_replace('_',' ',$session->mode) }} · {{ $session->started_at->copy()->setTimezone($tz)->format('M j, H:i') }}</small></div><span>Completed</span></div>@empty<p>No sessions yet.</p>@endforelse{{ $sessions->links() }}</x-ui.card>
+@endsection
