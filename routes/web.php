@@ -19,6 +19,12 @@ Route::middleware(NoStore::class)->group(function(){
  Route::view('/invite','identity.invite')->middleware(SessionVersion::class)->name('invite');
  Route::post('/invite',[W::class,'accept'])->middleware([SessionVersion::class,'throttle:5,1']);
  Route::middleware(['auth',SessionVersion::class])->group(function(){
+  Route::get('/calendar/templates',[\App\Http\Controllers\CalendarController::class,'templates'])->name('calendar.templates');
+  Route::post('/calendar/templates',[\App\Http\Controllers\CalendarController::class,'storeTemplate'])->name('calendar.templates.store');
+  Route::post('/calendar/templates/{template}/apply',[\App\Http\Controllers\CalendarController::class,'applyTemplate'])->name('calendar.templates.apply');
+  Route::delete('/calendar/templates/{template}',[\App\Http\Controllers\CalendarController::class,'deleteTemplate'])->name('calendar.templates.delete');
+  Route::post('/calendar/{event}/move',[\App\Http\Controllers\CalendarController::class,'move'])->name('calendar.move');
+  Route::resource('calendar',\App\Http\Controllers\CalendarController::class)->parameters(['calendar'=>'event'])->except(['show']);
   Route::resource('tasks',\App\Http\Controllers\TaskController::class);
   Route::post('/tasks/{task}/attachments',[\App\Http\Controllers\TaskController::class,'upload'])->middleware('throttle:10,1')->name('tasks.attachments.upload');
   Route::get('/tasks/{task}/attachments/{attachment}',[\App\Http\Controllers\TaskController::class,'download'])->name('tasks.attachments.download');
