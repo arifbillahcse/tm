@@ -12,7 +12,22 @@ class KnowledgeService {
  public function render(Note $n): string{
   if(in_array($n->kind,['snippet','prompt'],true))return '<pre><code>'.e($n->body).'</code></pre>';
   // Disable embedded images and links in the preview; explicit bookmark URLs are separately validated.
-  return strip_tags(Str::markdown($n->body,['html_input'=>'strip','allow_unsafe_links'=>false,'max_nesting_level'=>20]),'<p><h1><h2><h3><h4><h5><h6><ul><ol><li><blockquote><pre><code><strong><em><del><hr><br><table><thead><tbody><tr><th><td>');
+  $html=Str::markdown($n->body,['html_input'=>'strip','allow_unsafe_links'=>false,'max_nesting_level'=>20]);
+  $allowed=explode(' ','p h1 h2 h3 h4 h5 h6 ul ol li blockquote pre code strong em del hr br table thead tbody tr th td');
+  $doc=new \DOMDocument();$previous=libxml_use_internal_errors(true);
+  try{
+   if(!$doc->loadHTML('<?xml encoding="UTF-8"><html><body>'.$html.'</body></html>',LIBXML_NONET))return '<pre>'.e($n->body).'</pre>';
+   $body=$doc->getElementsByTagName('body')->item(0);if(!$body)return '<pre>'.e($n->body).'</pre>';
+   $clean=function(\DOMNode $node)use(&$clean,$allowed):string{
+    if($node instanceof \DOMText)return e($node->nodeValue);
+    if(!$node instanceof \DOMElement)return '';
+    $tag=strtolower($node->tagName);if(in_array($tag,['script','style','iframe','object','embed','svg','math','img','template'],true))return '';
+    $inner='';foreach($node->childNodes as $child)$inner.=$clean($child);
+    if(!in_array($tag,$allowed,true))return $inner;
+    return in_array($tag,['hr','br'],true)?'<'.$tag.'>':'<'.$tag.'>'.$inner.'</'.$tag.'>';
+   };
+   $output='';foreach($body->childNodes as $child)$output.=$clean($child);return $output;
+  }finally{libxml_clear_errors();libxml_use_internal_errors($previous);}
  }
  public function save(Workspace $w,User $u,array $d,?Note $note=null): Note{
   return DB::transaction(function()use($w,$u,$d,$note){
