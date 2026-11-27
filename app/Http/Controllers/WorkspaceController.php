@@ -27,14 +27,14 @@ class WorkspaceController {
   return view('identity.workspace',['workspace'=>$workspace,'members'=>$workspace->type==='personal'?collect():$workspace->members()->get(),'invitations'=>Gate::allows('manage',$workspace)?$workspace->invitations()->whereNull('accepted_at')->whereNull('revoked_at')->get():collect(),'events'=>Gate::allows('manage',$workspace)?DB::table('audit_events')->where('workspace_id',$workspace->id)->latest()->limit(30)->get():collect()]);
  }
  public function invite(Request $r,Workspace $workspace){
-  Gate::authorize('manage',$workspace);$data=$r->validate(['email'=>'required|email|max:255','role'=>['required',Rule::in(['admin','manager','member'])]]);
+  Gate::authorize('manage',$workspace);abort_if(app()->isProduction()&&config('mail.default')==='log',503);$data=$r->validate(['email'=>'required|email|max:255','role'=>['required',Rule::in(['admin','manager','member'])]]);
   abort_if($data['role']==='admin'&&!Gate::allows('administer',$workspace),403);
   $email=strtolower($data['email']);$token=bin2hex(random_bytes(32));
-  DB::transaction(function()use($workspace,$r,$data,$email,$token){$workspace->invitations()->where('email',$email)->whereNull('accepted_at')->whereNull('revoked_at')->update(['revoked_at'=>now()]);$workspace->invitations()->create(['invited_by'=>$r->user()->id,'email'=>$email,'role'=>$data['role'],'token_hash'=>hash('sha256',$token),'expires_at'=>now()->addHours(48)]);Identity::audit('invitation_created',$r->user(),$workspace);});
+  DB::transaction(function()use($workspace,$r,$data,$email,$token){$workspace->invitations()->where('email',$email)->when($workspace->roleFor($r->user())!=='owner',fn($q)=>$q->where('role','!=','admin'))->whereNull('accepted_at')->whereNull('revoked_at')->update(['revoked_at'=>now()]);$workspace->invitations()->create(['invited_by'=>$r->user()->id,'email'=>$email,'role'=>$data['role'],'token_hash'=>hash('sha256',$token),'expires_at'=>now()->addHours(48)]);Identity::audit('invitation_created',$r->user(),$workspace);});
   Notification::route('mail',$email)->notify(new WorkspaceInvite($token));return back()->with('status','Invitation sent.');
  }
  public function accept(Request $r){
-  $data=$r->validate(['token'=>'required|string|size:64','name'=>'nullable|string|max:255','password'=>['nullable','confirmed',Password::min(12)]]);
+  $data=$r->validate(['token'=>'required|string|size:64','name'=>'nullable|string|max:255','password'=>['nullable','confirmed','max:72',Password::min(12)]]);
   $user=DB::transaction(function()use($r,$data){
    $i=Invitation::where('token_hash',hash('sha256',$data['token']))->lockForUpdate()->first();abort_unless($i&&$i->valid(),404);
    $w=$i->workspace;abort_unless($w->type==='business',403);
@@ -54,7 +54,7 @@ class WorkspaceController {
  }
  public function remove(Request $r,Workspace $workspace,User $member){
   Gate::authorize('administer',$workspace);abort_if($member->id===$workspace->owner_id,403);abort_unless($workspace->members()->where('users.id',$member->id)->exists(),404);
-  $workspace->members()->detach($member->id);Identity::audit('member_removed',$r->user(),$workspace);return back();
+  DB::transaction(function()use($workspace,$member){$workspace->members()->detach($member->id);$workspace->invitations()->where(fn($q)=>$q->where('email',$member->email)->orWhere('invited_by',$member->id))->whereNull('accepted_at')->update(['revoked_at'=>now()]);});Identity::audit('member_removed',$r->user(),$workspace);return back();
  }
  public function revoke(Request $r,Workspace $workspace,Invitation $invitation){
   Gate::authorize('manage',$workspace);abort_unless($invitation->workspace_id===$workspace->id,404);abort_if($invitation->role==='admin'&&!Gate::allows('administer',$workspace),403);$invitation->update(['revoked_at'=>now()]);Identity::audit('invitation_revoked',$r->user(),$workspace);return back();
