@@ -19,6 +19,21 @@ Route::middleware(NoStore::class)->group(function(){
  Route::view('/invite','identity.invite')->middleware(SessionVersion::class)->name('invite');
  Route::post('/invite',[W::class,'accept'])->middleware([SessionVersion::class,'throttle:5,1']);
  Route::middleware(['auth',SessionVersion::class])->group(function(){
+  Route::get('/crm',[\App\Http\Controllers\CrmController::class,'index'])->name('crm.index');
+  Route::post('/crm/companies',[\App\Http\Controllers\CrmController::class,'company'])->name('crm.company');
+  Route::put('/crm/companies/{id}',[\App\Http\Controllers\CrmController::class,'company'])->whereNumber('id')->name('crm.company.update');
+  Route::post('/crm/contacts',[\App\Http\Controllers\CrmController::class,'contact'])->name('crm.contact');
+  Route::put('/crm/contacts/{id}',[\App\Http\Controllers\CrmController::class,'contact'])->whereNumber('id')->name('crm.contact.update');
+  Route::post('/crm/leads',[\App\Http\Controllers\CrmController::class,'lead'])->name('crm.lead');
+  Route::patch('/crm/leads/{id}',[\App\Http\Controllers\CrmController::class,'updateLead'])->whereNumber('id')->name('crm.lead.update');
+  Route::post('/crm/deals',[\App\Http\Controllers\CrmController::class,'deal'])->name('crm.deal');
+  Route::patch('/crm/deals/{id}',[\App\Http\Controllers\CrmController::class,'updateDeal'])->whereNumber('id')->name('crm.deal.update');
+  Route::post('/crm/followups',[\App\Http\Controllers\CrmController::class,'followup'])->name('crm.followup');
+  Route::patch('/crm/followups/{id}',[\App\Http\Controllers\CrmController::class,'completeFollowup'])->whereNumber('id')->name('crm.followup.complete');
+  Route::post('/crm/documents',[\App\Http\Controllers\CrmController::class,'document'])->name('crm.document');
+  Route::patch('/crm/documents/{id}',[\App\Http\Controllers\CrmController::class,'documentStatus'])->whereNumber('id')->name('crm.document.status');
+  Route::get('/crm/documents/{id}',[\App\Http\Controllers\CrmController::class,'printDocument'])->whereNumber('id')->name('crm.document.print');
+  Route::post('/crm/interactions',[\App\Http\Controllers\CrmController::class,'interaction'])->name('crm.interaction');
   Route::get('/projects',[\App\Http\Controllers\ProjectController::class,'index'])->name('projects.index');
   Route::post('/projects',[\App\Http\Controllers\ProjectController::class,'store'])->name('projects.store');
   Route::post('/projects/templates',[\App\Http\Controllers\ProjectController::class,'template'])->name('projects.template');
