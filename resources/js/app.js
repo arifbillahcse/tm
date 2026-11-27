@@ -32,3 +32,13 @@ document.querySelector('[data-template-add]')?.addEventListener('click',()=>{con
 
 const focusMode=document.querySelector('[data-focus-mode]');focusMode?.addEventListener('change',()=>{const minutes=document.querySelector('[data-focus-minutes]');if(minutes)minutes.value=({pomodoro:25,deep:90,custom:45,short_break:5,long_break:15})[focusMode.value]??25;});
 const focusClock=document.querySelector('[data-focus-elapsed]');if(focusClock){const base=Number(focusClock.dataset.focusElapsed),target=Number(focusClock.dataset.focusTarget),running=focusClock.dataset.focusRunning==='1',loaded=Date.now();const format=s=>[Math.floor(s/3600),Math.floor(s/60)%60,s%60].map(v=>String(v).padStart(2,'0')).join(':');const tick=()=>{const elapsed=base+(running?Math.max(0,Math.floor((Date.now()-loaded)/1000)):0);focusClock.textContent=format(Math.max(0,target-elapsed));const actual=document.querySelector('[data-focus-actual]');if(actual)actual.textContent=format(elapsed);const notice=document.querySelector('[data-focus-notice]');if(notice&&elapsed>=target)notice.textContent='Target reached. Stop or continue recording actual time.';};tick();if(running)setInterval(tick,1000);}
+
+// Progressive web app: cache only public static assets; never persist authenticated pages or data.
+if ('serviceWorker' in navigator && window.isSecureContext) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js', {scope: '/' }).catch(() => {}), {once:true});
+}
+let installPrompt=null;
+const installButton=document.querySelector('[data-pwa-install]');
+window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;if(installButton)installButton.hidden=false;});
+installButton?.addEventListener('click',async()=>{if(!installPrompt)return;installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;installButton.hidden=true;});
+window.addEventListener('appinstalled',()=>{installPrompt=null;if(installButton)installButton.hidden=true;});
