@@ -8,7 +8,7 @@ class SecurityBaselineTest extends TestCase {
   $r=$this->get('/login')->assertOk();
   $r->assertHeader('X-Content-Type-Options','nosniff')
     ->assertHeader('X-Frame-Options','DENY')
-    ->assertHeader('Referrer-Policy','strict-origin-when-cross-origin')
+    ->assertHeader('Referrer-Policy','no-referrer')
     ->assertHeader('Permissions-Policy','camera=(), microphone=(), geolocation=(), payment=()')
     ->assertHeader('Cross-Origin-Opener-Policy','same-origin')
     ->assertHeader('Cross-Origin-Resource-Policy','same-origin');
