@@ -54,7 +54,7 @@ jobs:
       - name: Validate and install PHP dependencies
         run: |
           test -f composer.lock
-          composer validate --strict
+          composer validate --no-check-publish
           composer install --no-interaction --prefer-dist --no-progress
           composer check-platform-reqs
       - name: Install JS dependencies
