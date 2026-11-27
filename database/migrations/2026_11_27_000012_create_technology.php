@@ -1,0 +1,14 @@
+<?php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+return new class extends Migration {
+ public function up():void{
+  Schema::create('tech_assets',function(Blueprint $t){$t->id();$t->foreignId('workspace_id')->constrained()->restrictOnDelete();$t->foreignId('user_id')->constrained()->restrictOnDelete();$t->foreignId('parent_id')->nullable()->constrained('tech_assets')->restrictOnDelete();$t->string('kind',24);$t->string('name',200);$t->string('status',24);$t->text('description')->nullable();$t->json('details');$t->date('due_date')->nullable();$t->unsignedInteger('version')->default(1);$t->timestamps();$t->index(['workspace_id','kind','status']);$t->index(['workspace_id','due_date']);});
+  Schema::create('tech_metrics',function(Blueprint $t){$t->id();$t->foreignId('workspace_id')->constrained()->restrictOnDelete();$t->foreignId('asset_id')->constrained('tech_assets')->restrictOnDelete();$t->foreignId('user_id')->constrained()->restrictOnDelete();$t->unsignedTinyInteger('cpu');$t->unsignedTinyInteger('memory');$t->unsignedTinyInteger('disk');$t->dateTime('sampled_at');$t->timestamps();$t->index(['workspace_id','asset_id','sampled_at']);});
+  Schema::create('tech_monitors',function(Blueprint $t){$t->id();$t->foreignId('workspace_id')->constrained()->restrictOnDelete();$t->foreignId('asset_id')->constrained('tech_assets')->restrictOnDelete();$t->foreignId('user_id')->constrained()->restrictOnDelete();$t->string('hostname',253);$t->boolean('enabled')->default(false);$t->unsignedSmallInteger('interval_minutes')->default(15);$t->dateTime('next_check_at')->nullable();$t->string('last_status',20)->default('unknown');$t->timestamps();$t->unique(['workspace_id','hostname']);$t->index(['enabled','next_check_at']);});
+  Schema::create('tech_monitor_samples',function(Blueprint $t){$t->id();$t->foreignId('workspace_id')->constrained()->restrictOnDelete();$t->foreignId('monitor_id')->constrained('tech_monitors')->restrictOnDelete();$t->string('status',20);$t->unsignedSmallInteger('http_status')->nullable();$t->unsignedInteger('latency_ms')->nullable();$t->dateTime('checked_at');$t->timestamps();$t->index(['workspace_id','monitor_id','checked_at']);});
+  Schema::create('tech_checklists',function(Blueprint $t){$t->id();$t->foreignId('workspace_id')->constrained()->restrictOnDelete();$t->foreignId('asset_id')->constrained('tech_assets')->restrictOnDelete();$t->foreignId('user_id')->constrained()->restrictOnDelete();$t->string('kind',20);$t->string('title',200);$t->date('due_date')->nullable();$t->dateTime('completed_at')->nullable();$t->timestamps();$t->index(['workspace_id','asset_id']);});
+ }
+ public function down():void{foreach(['tech_checklists','tech_monitor_samples','tech_monitors','tech_metrics','tech_assets'] as $table)Schema::dropIfExists($table);}
+};

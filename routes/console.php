@@ -18,3 +18,6 @@ Artisan::command('tasks:tick',function(){app(\App\Services\TaskService::class)->
 
 Artisan::command('finance:tick',function(){\App\Services\FinanceAccess::tick();$this->info('Finance scheduler complete.');});
 \Illuminate\Support\Facades\Schedule::command('finance:tick')->everyMinute()->withoutOverlapping();
+
+Artisan::command('technology:tick',function(){app(\App\Services\SafeMonitor::class)->tick();$this->info('Technology monitoring tick complete.');});
+\Illuminate\Support\Facades\Schedule::command('technology:tick')->everyMinute()->withoutOverlapping();
