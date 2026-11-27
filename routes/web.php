@@ -19,6 +19,19 @@ Route::middleware(NoStore::class)->group(function(){
  Route::view('/invite','identity.invite')->middleware(SessionVersion::class)->name('invite');
  Route::post('/invite',[W::class,'accept'])->middleware([SessionVersion::class,'throttle:5,1']);
  Route::middleware(['auth',SessionVersion::class])->group(function(){
+  Route::get('/communication',[\App\Http\Controllers\CommunicationController::class,'index'])->middleware('throttle:60,1')->name('communication.index');
+  Route::post('/communication',[\App\Http\Controllers\CommunicationController::class,'store'])->middleware('throttle:10,1')->name('communication.store');
+  Route::get('/communication/{id}',[\App\Http\Controllers\CommunicationController::class,'show'])->whereNumber('id')->middleware('throttle:60,1')->name('communication.show');
+  Route::post('/communication/{id}/messages',[\App\Http\Controllers\CommunicationController::class,'message'])->whereNumber('id')->middleware('throttle:30,1')->name('communication.message');
+  Route::post('/communication/share',[\App\Http\Controllers\CommunicationController::class,'share'])->middleware('throttle:10,1')->name('communication.share');
+  Route::post('/notifications/preferences',[\App\Http\Controllers\CommunicationController::class,'preferences'])->middleware('throttle:10,1')->name('communication.preferences');
+  Route::patch('/notifications/{id}',[\App\Http\Controllers\CommunicationController::class,'read'])->whereNumber('id')->middleware('throttle:60,1')->name('communication.read');
+  Route::post('/notifications/read-all',[\App\Http\Controllers\CommunicationController::class,'readAll'])->middleware('throttle:10,1')->name('communication.readAll');
+  Route::get('/integrations',[\App\Http\Controllers\IntegrationController::class,'index'])->middleware('throttle:60,1')->name('integrations.index');
+  Route::post('/integrations',[\App\Http\Controllers\IntegrationController::class,'store'])->middleware('throttle:10,1')->name('integrations.store');
+  Route::patch('/integrations/{id}',[\App\Http\Controllers\IntegrationController::class,'state'])->whereNumber('id')->middleware('throttle:10,1')->name('integrations.state');
+  Route::post('/integrations/{id}/test',[\App\Http\Controllers\IntegrationController::class,'test'])->whereNumber('id')->middleware('throttle:5,1')->name('integrations.test');
+  Route::delete('/integrations/{id}',[\App\Http\Controllers\IntegrationController::class,'disconnect'])->whereNumber('id')->middleware('throttle:10,1')->name('integrations.disconnect');
   Route::get('/technology',[\App\Http\Controllers\TechnologyController::class,'index'])->name('technology.index');
   Route::get('/technology/create',[\App\Http\Controllers\TechnologyController::class,'create'])->name('technology.create');
   Route::post('/technology',[\App\Http\Controllers\TechnologyController::class,'store'])->name('technology.store');
@@ -162,3 +175,5 @@ Route::middleware(NoStore::class)->group(function(){
   Route::delete('/workspaces/{workspace}/members/{member}',[W::class,'remove']);
  });
 });
+
+Route::post('/integrations/webhook/{id}',[\App\Http\Controllers\IntegrationWebhookController::class,'receive'])->whereNumber('id')->middleware('throttle:30,1')->name('integrations.webhook');
