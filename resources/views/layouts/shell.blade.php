@@ -6,10 +6,10 @@
 <div class="app-shell" data-shell>
  <button class="mobile-backdrop" data-sidebar-close aria-label="Close navigation" hidden></button>
  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
-  <a class="brand" href="{{ route('dashboard') }}"><span class="brand-mark" aria-hidden="true">S</span><span class="nav-label">softorio<span class="brand-sub">WORKSPACE</span></span></a>
+  <a class="brand" aria-label="Softorio dashboard" href="{{ route('dashboard') }}"><span class="brand-mark" aria-hidden="true">S</span><span class="nav-label">softorio<span class="brand-sub">WORKSPACE</span></span></a>
   <div class="workspace-picker">
    <span class="eyebrow nav-label">CURRENT WORKSPACE</span>
-   <details><summary><span class="workspace-avatar">{{ mb_substr($shellCurrent->name,0,1) }}</span><span class="nav-label"><strong>{{ $shellCurrent->name }}</strong><small>{{ ucfirst($shellCurrent->type) }} workspace</small></span><span class="nav-label" aria-hidden="true">⌄</span></summary>
+   <details><summary aria-label="Choose workspace"><span class="workspace-avatar">{{ mb_substr($shellCurrent->name,0,1) }}</span><span class="nav-label"><strong>{{ $shellCurrent->name }}</strong><small>{{ ucfirst($shellCurrent->type) }} workspace</small></span><span class="nav-label" aria-hidden="true">⌄</span></summary>
     <div class="picker-menu">@foreach($shellWorkspaces as $item)<form method="POST" action="{{ route('workspace.switch',$item) }}">@csrf<button type="submit" class="picker-option" @if($item->id===$shellCurrent->id) aria-current="true" @endif>{{ $item->name }} <small>{{ $item->type }}</small></button></form>@endforeach<a href="{{ route('workspaces.index') }}">Manage workspaces</a></div>
    </details>
   </div>
