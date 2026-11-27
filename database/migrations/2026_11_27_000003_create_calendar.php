@@ -10,7 +10,7 @@ return new class extends Migration {
    $t->index(['workspace_id','starts_at','ends_at']);
   });
   Schema::create('planning_templates',function(Blueprint $t){$t->id();$t->foreignId('workspace_id')->constrained()->restrictOnDelete();$t->string('name',100);$t->json('blocks');$t->timestamps();});
-  Schema::create('calendar_template_applications',function(Blueprint $t){$t->id();$t->foreignId('planning_template_id')->constrained()->cascadeOnDelete();$t->date('local_date');$t->timestamps();$t->unique(['planning_template_id','local_date']);});
+  Schema::create('calendar_template_applications',function(Blueprint $t){$t->id();$t->foreignId('planning_template_id')->constrained(table:'planning_templates',indexName:'cal_template_app_fk')->cascadeOnDelete();$t->date('local_date');$t->timestamps();$t->unique(['planning_template_id','local_date'],'cal_template_day_unique');});
  }
  public function down(): void {Schema::dropIfExists('calendar_template_applications');Schema::dropIfExists('planning_templates');Schema::dropIfExists('calendar_events');}
 };
