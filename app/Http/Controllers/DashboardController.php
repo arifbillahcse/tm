@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 class DashboardController {
  public function __construct(private WorkspaceContext $context){}
  private function modules(Workspace $w): array {
-  return $w->type==='personal'?['Personal finance'=>14]:['Business finance'=>14,'Infrastructure'=>15,'Communication'=>16];
+  return $w->type==='personal'?[]:['Infrastructure'=>15,'Communication'=>16];
  }
  public function index(Request $r){
   $w=$this->context->current($r);$user=$r->user();
@@ -22,7 +22,8 @@ class DashboardController {
   $teamStats=$w->type==='business'?\App\Services\TeamAccess::stats($w,$user):null;
   $projectStats=$w->type==='business'?\App\Services\ProjectAccess::stats($w,$user):null;
   $crmStats=\App\Services\CrmAccess::canView($w,$user)?\App\Services\CrmAccess::stats($w,$user):null;
-  return view('dashboard.index',['crmStats'=>$crmStats,'projectStats'=>$projectStats,'teamStats'=>$teamStats,'careerStats'=>$careerStats,'knowledge'=>$knowledge,'timeStats'=>$timeStats,'goalStats'=>$goalStats,'calendarToday'=>$calendarToday,'taskStats'=>$taskStats,'workspace'=>$w,'modules'=>$this->modules($w),'events'=>$events,'memberCount'=>$w->type==='business'?$w->members()->count():1,'pendingCount'=>Gate::allows('manage',$w)?$w->invitations()->whereNull('accepted_at')->whereNull('revoked_at')->where('expires_at','>',now())->count():null,'today'=>now()->setTimezone($user->timezone ?: 'UTC')->format('l, F j')]);
+  $financeStats=\App\Services\FinanceAccess::canView($w,$user)?\App\Services\FinanceAccess::stats($w,$user,now()->setTimezone($user->timezone?:'UTC')->format('Y-m')):null;
+  return view('dashboard.index',['financeStats'=>$financeStats,'crmStats'=>$crmStats,'projectStats'=>$projectStats,'teamStats'=>$teamStats,'careerStats'=>$careerStats,'knowledge'=>$knowledge,'timeStats'=>$timeStats,'goalStats'=>$goalStats,'calendarToday'=>$calendarToday,'taskStats'=>$taskStats,'workspace'=>$w,'modules'=>$this->modules($w),'events'=>$events,'memberCount'=>$w->type==='business'?$w->members()->count():1,'pendingCount'=>Gate::allows('manage',$w)?$w->invitations()->whereNull('accepted_at')->whereNull('revoked_at')->where('expires_at','>',now())->count():null,'today'=>now()->setTimezone($user->timezone ?: 'UTC')->format('l, F j')]);
  }
  public function switch(Request $r,Workspace $workspace){
   Gate::authorize('view',$workspace);$r->session()->put('workspace_id',$workspace->id);return redirect()->route('dashboard');
@@ -41,6 +42,7 @@ class DashboardController {
   if($w->type==='business'&&$q!==''&&str_contains('team employees attendance leave onboarding reports announcements',mb_strtolower($q)))$pages->put('Team',route('team.index'));
   if($w->type==='business'&&$q!==''&&str_contains('projects project kanban milestones collaboration',mb_strtolower($q)))$pages->put('Projects',route('projects.index'));
   if(\App\Services\CrmAccess::canView($w,$r->user())&&$q!==''&&str_contains('crm customers contacts leads deals sales pipeline',mb_strtolower($q)))$pages->put('CRM',route('crm.index'));
+  if(\App\Services\FinanceAccess::canView($w,$r->user())&&$q!==''&&str_contains('finance ledger salary payroll invoice budget savings',mb_strtolower($q)))$pages->put('Finance',route('finance.index'));
   return view('dashboard.search',['query'=>$q,'results'=>$results,'pages'=>$pages]);
  }
  public function notifications(Request $r){
