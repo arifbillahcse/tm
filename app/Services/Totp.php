@@ -22,9 +22,10 @@ class Totp {
  public static function consume(User $user,string $code): bool {
   return DB::transaction(function()use($user,$code){
    $fresh=User::query()->lockForUpdate()->findOrFail($user->id);
-   if(!$fresh->two_factor_secret)return false;
+   if(!$fresh->two_factor_secret||$fresh->auth_version!==$user->auth_version)return false;
    $step=self::matchingStep($fresh->two_factor_secret,$code);
    if($step!==null&&($fresh->totp_last_step===null||$step>$fresh->totp_last_step)){$fresh->forceFill(['totp_last_step'=>$step])->save();return true;}
+   if(!preg_match('/^[a-f0-9]{16}$/D',$code))return false;
    $codes=$fresh->recovery_codes??[];
    foreach($codes as $i=>$hash)if(Hash::check($code,$hash)){unset($codes[$i]);$fresh->forceFill(['recovery_codes'=>array_values($codes)])->save();return true;}
    return false;
