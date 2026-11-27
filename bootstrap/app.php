@@ -7,7 +7,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectUsersTo('/workspaces');
         $middleware->web(append: [\App\Http\Middleware\SessionVersion::class]);
-        $middleware->trimStrings(except: ['code','token']);
+        $middleware->trimStrings(except: ['code','token','secret']);
+        $middleware->validateCsrfTokens(except: ['integrations/webhook/*']);
     })
-    ->withExceptions(function (Exceptions $exceptions): void {})
+    ->withExceptions(function (Exceptions $exceptions): void {$exceptions->dontFlash(['secret']);})
     ->create();

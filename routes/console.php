@@ -21,3 +21,6 @@ Artisan::command('finance:tick',function(){\App\Services\FinanceAccess::tick();$
 
 Artisan::command('technology:tick',function(){app(\App\Services\SafeMonitor::class)->tick();$this->info('Technology monitoring tick complete.');});
 \Illuminate\Support\Facades\Schedule::command('technology:tick')->everyMinute()->withoutOverlapping();
+
+Artisan::command('communication:tick',function(){app(\App\Services\CommunicationDelivery::class)->tick();$this->info('Communication delivery tick complete.');});
+\Illuminate\Support\Facades\Schedule::command('communication:tick')->everyMinute()->withoutOverlapping();

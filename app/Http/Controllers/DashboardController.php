@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 class DashboardController {
  public function __construct(private WorkspaceContext $context){}
  private function modules(Workspace $w): array {
-  return $w->type==='personal'?[]:['Communication'=>16];
+  return $w->type==='personal'?[]:[];
  }
  public function index(Request $r){
   $w=$this->context->current($r);$user=$r->user();
@@ -45,11 +45,13 @@ class DashboardController {
   if(\App\Services\CrmAccess::canView($w,$r->user())&&$q!==''&&str_contains('crm customers contacts leads deals sales pipeline',mb_strtolower($q)))$pages->put('CRM',route('crm.index'));
   if(\App\Services\FinanceAccess::canView($w,$r->user())&&$q!==''&&str_contains('finance ledger salary payroll invoice budget savings',mb_strtolower($q)))$pages->put('Finance',route('finance.index'));
   if(\App\Services\TechnologyAccess::canView($w,$r->user())&&$q!==''&&str_contains('technology infrastructure servers domains ssl repositories monitoring incidents backups',mb_strtolower($q)))$pages->put('Infrastructure',route('technology.index'));
+  if(\App\Services\CommunicationAccess::canChat($w,$r->user())&&$q!==''&&str_contains('communication chat messages announcements',mb_strtolower($q)))$pages->put('Communication',route('communication.index'));
+  if(\App\Services\CommunicationAccess::canIntegrate($w,$r->user())&&$q!==''&&str_contains('integrations providers webhooks',mb_strtolower($q)))$pages->put('Integrations',route('integrations.index'));
   return view('dashboard.search',['query'=>$q,'results'=>$results,'pages'=>$pages]);
  }
  public function notifications(Request $r){
   $w=$this->context->current($r);
   $events=DB::table('audit_events')->where('workspace_id',$w->id)->where('user_id',$r->user()->id)->latest('id')->limit(20)->get();
-  return view('dashboard.notifications',compact('events','w'));
+  $notifications=\App\Services\CommunicationAccess::notifications($w,$r->user())->latest('id')->paginate(30);$preferences=\App\Services\CommunicationAccess::preferences($w,$r->user());return view('dashboard.notifications',compact('events','w','notifications','preferences'));
  }
 }
