@@ -15,8 +15,9 @@ class TaskService {
    Workspace::whereKey($workspace->id)->lockForUpdate()->firstOrFail();
    $task=$task?Task::where('workspace_id',$workspace->id)->lockForUpdate()->findOrFail($task->id):new Task();
    $new=!$task->exists;$previous=$task->status;
-   $parent=$data['parent_id']??null;$deps=$data['dependencies']??[];
+   $parent=$data['parent_id']??null;$deps=array_map('intval',$data['dependencies']??[]);
    unset($data['dependencies']);
+   if($parent&& !empty($data['recurrence']))throw ValidationException::withMessages(['recurrence'=>'Recurring subtasks are not supported.']);
    if($parent){$p=Task::where('workspace_id',$workspace->id)->find($parent);if(!$p||$p->parent_id||$p->id===$task->id||(!$new&&$task->children()->exists()))throw ValidationException::withMessages(['parent_id'=>'Choose a top-level task. Only one level of subtasks is supported.']);}
    foreach($deps as $id){
     $candidate=Task::where('workspace_id',$workspace->id)->find($id);
@@ -35,7 +36,7 @@ class TaskService {
  private function reaches(Task $from,?int $target,int $workspace): bool {
   if(!$target)return false;
   $queue=[$from->id];$seen=[];
-  while($queue){$id=array_pop($queue);if($id===$target)return true;if(isset($seen[$id]))continue;$seen[$id]=true;
+  while($queue){$id=array_pop($queue);if((int)$id===$target)return true;if(isset($seen[$id]))continue;$seen[$id]=true;
    $node=Task::where('workspace_id',$workspace)->find($id);if($node)foreach($node->dependencies()->where('tasks.workspace_id',$workspace)->pluck('tasks.id') as $next)$queue[]=$next;
   }return false;
  }
@@ -49,6 +50,7 @@ class TaskService {
    $base=$t->due_at->copy()->setTimezone($t->recurrence_timezone);
    $next=match($t->recurrence){'daily'=>$base->copy()->addDay(),'weekly'=>$base->copy()->addWeek(),'monthly'=>$base->copy()->addMonthNoOverflow(),default=>null};
    if(!$next)return;$root=$t->series_id??$t->id;$utc=$next->utc();
+   if(Task::withTrashed()->where('series_id',$root)->where('occurrence_at','>',$t->occurrence_at??$t->due_at)->exists())return;
    if(Task::withTrashed()->where('series_id',$root)->where('occurrence_at',$utc)->exists())return;
    $copy=new Task(['title'=>$t->title,'description'=>$t->description,'priority'=>$t->priority,'status'=>'pending','due_at'=>$utc,'tags'=>$t->tags,'recurrence'=>$t->recurrence,'recurrence_timezone'=>$t->recurrence_timezone]);
    $copy->workspace_id=$w->id;$copy->creator_id=$w->owner_id;$copy->series_id=$root;$copy->occurrence_at=$utc;
