@@ -19,6 +19,16 @@ Route::middleware(NoStore::class)->group(function(){
  Route::view('/invite','identity.invite')->middleware(SessionVersion::class)->name('invite');
  Route::post('/invite',[W::class,'accept'])->middleware([SessionVersion::class,'throttle:5,1']);
  Route::middleware(['auth',SessionVersion::class])->group(function(){
+  Route::get('/time',[\App\Http\Controllers\TimeTrackingController::class,'index'])->name('time.index');
+  Route::post('/time/start',[\App\Http\Controllers\TimeTrackingController::class,'start'])->name('time.start');
+  Route::post('/time/sessions/{session}/transition',[\App\Http\Controllers\TimeTrackingController::class,'transition'])->name('time.transition');
+  Route::get('/time/report',[\App\Http\Controllers\TimeTrackingController::class,'report'])->name('time.report');
+  Route::get('/time/entries',[\App\Http\Controllers\TimeTrackingController::class,'entries'])->name('time.entries');
+  Route::get('/time/entries/create',[\App\Http\Controllers\TimeTrackingController::class,'create'])->name('time.create');
+  Route::post('/time/entries',[\App\Http\Controllers\TimeTrackingController::class,'store'])->name('time.store');
+  Route::get('/time/entries/{entry}/edit',[\App\Http\Controllers\TimeTrackingController::class,'edit'])->name('time.edit');
+  Route::put('/time/entries/{entry}',[\App\Http\Controllers\TimeTrackingController::class,'update'])->name('time.update');
+  Route::delete('/time/entries/{entry}',[\App\Http\Controllers\TimeTrackingController::class,'destroy'])->name('time.destroy');
   Route::get('/goals/vision',[\App\Http\Controllers\GoalController::class,'vision'])->name('goals.vision');
   Route::get('/goals/reports',[\App\Http\Controllers\GoalController::class,'reports'])->name('goals.reports');
   Route::post('/goals/reviews',[\App\Http\Controllers\GoalController::class,'review'])->name('goals.reviews.store');
