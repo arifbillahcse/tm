@@ -8,3 +8,7 @@
 @media(max-width:760px){.app-shell,.app-shell.collapsed{display:block}.sidebar{position:fixed;inset:0 auto 0 0;width:248px;z-index:40;transform:translateX(-100%);transition:transform .18s ease}.app-shell.mobile-open .sidebar{transform:none}.app-shell.mobile-open .mobile-backdrop{display:block;position:fixed;inset:0;background:#0f172a88;z-index:30}.collapsed .nav-label{display:initial}.collapsed .picker-menu{position:static;width:auto}.desktop-only,.breadcrumb{display:none}.page-content{padding:16px;gap:16px}.topbar{height:60px;padding:0 12px;gap:6px}.top-actions{gap:5px}.hero{padding:22px}.hero-art{display:none}.panel{padding:16px}.stats-grid,.module-grid{gap:9px}.quick-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:370px){.stats-grid,.module-grid,.quick-grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Keep desktop collapse preferences from hiding mobile labels; provide a JS-free navigation fallback. */
+.workspace-picker summary:focus-visible{outline-offset:2px}
+@media(max-width:760px){.app-shell:not(.js-ready) .sidebar{position:relative;transform:none;width:100%;height:auto}.app-shell:not(.js-ready) [data-sidebar-toggle]{display:none}.app-shell.collapsed .nav-link{justify-content:flex-start}.app-shell.collapsed .nav-label{display:revert}.app-shell.collapsed .workspace-picker summary{justify-content:flex-start}.app-shell.collapsed .nav-link.unavailable{justify-content:space-between}}
