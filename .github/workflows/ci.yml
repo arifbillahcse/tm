@@ -35,14 +35,16 @@ jobs:
       DB_USERNAME: workspace
       DB_PASSWORD: ci-test-only
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: mbstring, pdo_mysql, sqlite3, pdo_sqlite, dom, curl, xml, zip
           coverage: none
           tools: composer:v2
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
       - name: Prepare environment
@@ -51,12 +53,13 @@ jobs:
           mkdir -p bootstrap/cache storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs storage/app/private
       - name: Validate and install PHP dependencies
         run: |
-          composer validate
+          test -f composer.lock
+          composer validate --strict
           composer install --no-interaction --prefer-dist --no-progress
           composer check-platform-reqs
       - name: Install JS dependencies
         run: |
-          if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
+          npm ci --no-audit --no-fund
           npm run build
       - name: Generate key and test
         run: |
@@ -69,44 +72,3 @@ jobs:
         run: |
           composer audit
           npm audit --audit-level=high
-      - name: Publish generated lockfiles
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-lockfiles
-          path: |
-            composer.lock
-            package-lock.json
-          if-no-files-found: warn
-
-  import-lockfiles:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feature/phase-02'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      actions: read
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: feature/phase-02
-      - name: Download verified lockfiles from initial successful run
-        uses: actions/download-artifact@v4
-        with:
-          name: dependency-lockfiles
-          run-id: 45876392123
-          github-token: ${{ github.token }}
-          path: verified-lockfiles
-      - name: Verify checksums and commit only lockfiles
-        shell: bash
-        run: |
-          cd verified-lockfiles
-          echo '4907ab04a395f88ba30d65af2c41e99223b8153f17263dde4ef6c676eb15746b  composer.lock' | sha256sum -c -
-          echo 'c285aa919d65ea56f5d7ffaa7bb8e0a7aeb681239b6e77f713c601732cde32c1  package-lock.json' | sha256sum -c -
-          cd ..
-          cp verified-lockfiles/composer.lock verified-lockfiles/package-lock.json .
-          git add -- composer.lock package-lock.json
-          if git diff --cached --quiet; then exit 0; fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'build: commit verified dependency lockfiles'
-          git push origin HEAD:feature/phase-02
