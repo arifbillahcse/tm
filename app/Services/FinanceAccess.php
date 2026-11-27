@@ -23,8 +23,8 @@ class FinanceAccess {
   return self::insert($w,'transactions',$data+['currency'=>$a->currency,'user_id'=>$u->id]);
  }
  public static function stats(Workspace $w,User $u,string $month):array{
-  self::authorize($w,$u);$q=self::query($w,'transactions')->whereBetween('local_date',[$month.'-01',$month.'-31']);
-  return (clone $q)->selectRaw("currency, SUM(CASE WHEN kind='income' AND reversal_of IS NULL THEN amount_minor WHEN kind='expense' AND reversal_of IS NOT NULL THEN -amount_minor ELSE 0 END) AS income, SUM(CASE WHEN kind='expense' AND reversal_of IS NULL THEN amount_minor WHEN kind='income' AND reversal_of IS NOT NULL THEN -amount_minor ELSE 0 END) AS expense")->groupBy('currency')->get()->map(fn($r)=>['currency'=>$r->currency,'income'=>self::money($r->income),'expense'=>self::money($r->expense),'net'=>self::money((int)$r->income-(int)$r->expense)])->all();
+  self::authorize($w,$u);$q=self::query($w,'transactions')->whereBetween('local_date',[$month.'-01',\Illuminate\Support\Carbon::createFromFormat('!Y-m',$month,'UTC')->endOfMonth()->toDateString()]);
+  return (clone $q)->selectRaw("currency, SUM(CASE WHEN kind='income' AND reversal_of IS NULL THEN amount_minor WHEN kind='expense' AND reversal_of IS NOT NULL THEN -CAST(amount_minor AS SIGNED) ELSE 0 END) AS income, SUM(CASE WHEN kind='expense' AND reversal_of IS NULL THEN amount_minor WHEN kind='income' AND reversal_of IS NOT NULL THEN -CAST(amount_minor AS SIGNED) ELSE 0 END) AS expense")->groupBy('currency')->get()->map(fn($r)=>['currency'=>$r->currency,'income'=>self::money($r->income),'expense'=>self::money($r->expense),'net'=>self::money((int)$r->income-(int)$r->expense)])->all();
  }
  public static function tick():void{
   foreach(DB::table('finance_recurring')->where('active',true)->where('next_date','<=',now()->addDay()->toDateString())->orderBy('id')->cursor() as $candidate){
