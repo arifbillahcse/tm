@@ -12,3 +12,5 @@
 /* Keep desktop collapse preferences from hiding mobile labels; provide a JS-free navigation fallback. */
 .workspace-picker summary:focus-visible{outline-offset:2px}
 @media(max-width:760px){.app-shell:not(.js-ready) .sidebar{position:relative;transform:none;width:100%;height:auto}.app-shell:not(.js-ready) [data-sidebar-toggle]{display:none}.app-shell.collapsed .nav-link{justify-content:flex-start}.app-shell.collapsed .nav-label{display:revert}.app-shell.collapsed .workspace-picker summary{justify-content:flex-start}.app-shell.collapsed .nav-link.unavailable{justify-content:space-between}}
+
+.task-tabs{display:flex;gap:8px;flex-wrap:wrap}.task-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;align-items:end;margin-top:14px}.task-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.task-description{white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:12px}.task-row strong{overflow-wrap:anywhere}.task-row>div{min-width:0}.task-row>span{flex-shrink:0}@media(max-width:760px){.task-board{grid-template-columns:1fr}}

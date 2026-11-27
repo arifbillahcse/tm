@@ -20,8 +20,9 @@
    <span class="eyebrow nav-label">MANAGE</span>
    <x-ui.nav :href="route('workspaces.index')" :active="request()->routeIs('workspaces.index','workspaces.show')" aria-label="Workspaces"><span aria-hidden="true">▤</span><span class="nav-label">Workspaces</span></x-ui.nav>
    <x-ui.nav :href="route('profile')" :active="request()->routeIs('profile')" aria-label="Profile and security"><span aria-hidden="true">⚙</span><span class="nav-label">Profile &amp; security</span></x-ui.nav>
+   @if($shellCurrent->type==='personal')<span class="eyebrow nav-label">PRODUCTIVITY</span><x-ui.nav :href="route('tasks.index')" :active="request()->routeIs('tasks.*')" aria-label="Tasks"><span aria-hidden="true">✓</span><span class="nav-label">Tasks</span></x-ui.nav><x-ui.nav :href="route('tasks.index',['view'=>'today'])" aria-label="My Day"><span aria-hidden="true">☀</span><span class="nav-label">My Day</span></x-ui.nav>@endif
    <span class="eyebrow nav-label">COMING NEXT</span>
-   @foreach($shellCurrent->type==='personal'?['My Day','Tasks','Calendar','Goals','Focus','Second brain','Career']:['Team','Projects','CRM','Finance','Infrastructure'] as $label)
+   @foreach($shellCurrent->type==='personal'?['Calendar','Goals','Focus','Second brain','Career']:['Team','Projects','CRM','Finance','Infrastructure'] as $label)
     <span class="nav-link unavailable nav-label">{{ $label }}<small>Soon</small></span>
    @endforeach
   </nav>
