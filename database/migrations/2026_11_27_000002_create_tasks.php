@@ -9,7 +9,7 @@ return new class extends Migration {
    $t->foreignId('parent_id')->nullable()->constrained('tasks')->nullOnDelete();
    $t->string('title',200);$t->text('description')->nullable();$t->string('status',20)->default('pending');$t->string('priority',20)->default('medium');
    $t->dateTime('due_at')->nullable();$t->date('planned_date')->nullable();$t->dateTime('completed_at')->nullable();$t->string('recurrence',20)->nullable();
-   $t->string('recurrence_timezone',64)->default('UTC');$t->foreignId('series_id')->nullable()->constrained('tasks')->restrictOnDelete();$t->dateTime('occurrence_at')->nullable();
+   $t->string('recurrence_timezone',64)->default('UTC');$t->foreignId('series_id')->nullable()->constrained('tasks')->restrictOnDelete();$t->dateTime('occurrence_at')->nullable();$t->foreignId('previous_occurrence_id')->nullable()->unique()->constrained('tasks')->restrictOnDelete();
    $t->dateTime('remind_at')->nullable();$t->dateTime('reminded_at')->nullable();$t->json('tags')->nullable();$t->timestamps();$t->softDeletes();
    $t->index(['workspace_id','status','due_at']);$t->index(['workspace_id','planned_date']);$t->unique(['series_id','occurrence_at']);$t->index(['reminded_at','remind_at']);
   });
