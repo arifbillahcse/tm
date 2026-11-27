@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en" data-theme="light">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>@yield('title','Workspace') · Softorio</title>@vite(['resources/css/app.css','resources/js/app.js'])</head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#4f46e5"><link rel="manifest" href="{{ asset('manifest.webmanifest') }}"><title>@yield('title','Workspace') · Softorio</title>@vite(['resources/css/app.css','resources/js/app.js'])</head>
 <body class="workspace-app">
 <a class="skip" href="#main-content">Skip to content</a>
 <div class="app-shell" data-shell>
@@ -39,7 +39,7 @@
    <span class="breadcrumb">Workspace / @yield('title','Overview')</span>
    <div class="top-actions">
     <button class="search-trigger" type="button" data-search-open aria-label="Open search"><span aria-hidden="true">⌕</span><span class="desktop-only">Search pages</span><kbd class="desktop-only">Ctrl K</kbd></button>
-    <button class="icon-button" data-theme-toggle type="button" aria-label="Switch color theme">◐</button>
+    <button class="icon-button" data-pwa-install type="button" aria-label="Install Softorio" hidden>↓</button><button class="icon-button" data-theme-toggle type="button" aria-label="Switch color theme">◐</button>
     <a class="icon-button" href="{{ route('notifications.index') }}" aria-label="Notifications">◉</a>
     <a class="user-avatar" href="{{ route('profile') }}" aria-label="Your profile">{{ mb_substr(auth()->user()->name,0,1) }}</a>
    </div>
