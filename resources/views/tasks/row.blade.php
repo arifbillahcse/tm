@@ -1,0 +1,1 @@
+<a class="result-row task-row" href="{{ route('tasks.show',$task) }}"><div><strong>{{ $task->title }}</strong><p><small>{{ ucfirst($task->priority) }} · {{ str_replace('_',' ',$task->status) }} @if($task->due_at) · {{ $task->due_at->copy()->setTimezone($tz)->format('M j, H:i') }} @endif</small></p></div><span>View →</span></a>
