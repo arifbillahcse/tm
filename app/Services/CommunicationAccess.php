@@ -15,7 +15,7 @@ class CommunicationAccess {
   if(!$w->roleFor($u))return;
   if($conversation!==null&&!self::conversations($w,$u)->where('id',$conversation)->exists())return;
   $p=self::preferences($w,$u);if(($p->mentions_only??false)&&$kind==='message')return;
-  DB::table('comm_notifications')->insertOrIgnore(['workspace_id'=>$w->id,'user_id'=>$u->id,'kind'=>$kind,'event_key'=>$key,'conversation_id'=>$conversation,'email_status'=>($p->email_enabled??false)?'pending':'disabled','created_at'=>now(),'updated_at'=>now()]);
+  DB::table('comm_notifications')->insertOrIgnore(['workspace_id'=>$w->id,'user_id'=>$u->id,'kind'=>$kind,'event_key'=>$key,'conversation_id'=>$conversation,'email_status'=>($p->email_enabled??false)?'pending':'disabled','push_status'=>($p->push_enabled??false)?'pending':'disabled','created_at'=>now(),'updated_at'=>now()]);
  }
  public static function integrations(Workspace $w,User $u){abort_unless(self::canIntegrate($w,$u),403);return DB::table('comm_integrations')->where('workspace_id',$w->id);}
 }
